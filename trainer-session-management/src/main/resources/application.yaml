@@ -1,16 +1,19 @@
 spring:
   application:
-    name: training-session-management
+    name: trainer-session-management
 
 server:
   port: 8766
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: trainer-session-management
+    prefer-ip-address: true
   client:
     service-url:
-      defaultZone: http://localhost:8765/eureka/
+      defaultZone: http://gym-crm-service-discovery:8765/eureka/
+    fetch-registry: true
+    register-with-eureka: true
 
 application:
   security:

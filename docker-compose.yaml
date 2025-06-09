@@ -1,0 +1,80 @@
+services:
+  # --------------------------- DATABASE ---------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gym_app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --------------------------- SPRING BOOT SERVICES ---------------------------
+  gym-crm:
+    build:
+      context: ./gym-crm
+      dockerfile: Dockerfile
+    container_name: gym-crm
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      gym-crm-service-discovery:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gym_app
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+      EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://gym-crm-service-discovery:8765/eureka
+      EUREKA_INSTANCE_HOSTNAME: gym-crm
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+
+  gym-crm-service-discovery:
+    build:
+      context: ./gym-crm-service-discovery
+      dockerfile: Dockerfile
+    container_name: gym-crm-service-discovery
+    ports:
+      - "8765:8765"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
+      EUREKA_CLIENT_FETCH_REGISTRY: "false"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8765/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  trainer-session-management:
+    build:
+      context: ./trainer-session-management
+      dockerfile: Dockerfile
+    container_name: trainer-session-management
+    ports:
+      - "8766:8766"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      gym-crm-service-discovery:
+        condition: service_healthy
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://gym-crm-service-discovery:8765/eureka
+      EUREKA_INSTANCE_HOSTNAME: trainer-session-management
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+
+volumes:
+  postgres-data:

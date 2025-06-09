@@ -1,6 +1,6 @@
 spring:
   application:
-    name: main-service
+    name: gym-crm
   profiles:
     active: dev
   jpa:
@@ -25,7 +25,7 @@ application:
         expiration: 15552000000 # 6 months (for deployment)
 
   config:
-    students-url: http://localhost:8766/api/v1/manage-working-hours
+    students-url: http://trainer-session-management:8766/api/v1/manage-working-hours
 
 management:
   endpoints:
@@ -42,10 +42,18 @@ management:
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: gym-crm
+    prefer-ip-address: true
   client:
     service-url:
-      defaultZone: http://localhost:8765/eureka/
+      defaultZone: http://gym-crm-service-discovery:8765/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+
+logging:
+  level:
+    io.github.resilience4j.circuitbreaker: DEBUG
+    io.github.resilience4j.core: DEBUG
 
 resilience4j:
   circuitbreaker:
