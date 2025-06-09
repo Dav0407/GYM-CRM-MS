@@ -1,0 +1,27 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gym_app
+    username: gym_user
+    password: h#45_!kkds98786
+    driver-class-name: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      minimum-idle: 10
+      maximum-pool-size: 50
+      idle-timeout: 30000
+      pool-name: GymAppHikariPool-Production
+      auto-commit: true
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  jpa:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: validate  # Only validate schema for production
+    show-sql: false  # Disable SQL logging in production
+server:
+  port: 8000

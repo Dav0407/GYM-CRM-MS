@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: main-service
+  profiles:
+    active: dev
+  jpa:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: validate  # Safer default for production
+      jakarta:
+        persistence:
+          sql-load-script-source: META-INF/import.sql
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+
+application:
+  security:
+    jwt:
+      secret-key: "48656c6c6f2c2068656c6c6f206d79206e616d65206973204967726973303034"
+      expiration: 1800000 # 30 minutes (for deployment)
+      refresh-token:
+        expiration: 15552000000 # 6 months (for deployment)
+
+  config:
+    students-url: http://localhost:8766/api/v1/manage-working-hours
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      access: unrestricted
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://localhost:8765/eureka/
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      trainerSessionManagement:
+        registerHealthIndicator: true
+        sliding-window-type: count_based
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        slow-call-duration-threshold: 2s
+        slow-call-rate-threshold: 50
+        permittedNumberOfCallsInHalfOpenState: 2
+        automaticTransitionFromOpenToHalfOpenEnabled: true

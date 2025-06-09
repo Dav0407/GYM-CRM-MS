@@ -1,0 +1,25 @@
+spring:
+  config:
+    activate:
+      on-profile: stg
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gym_app
+    username: staging_user
+    password: 3456@#$%^
+    driver-class-name: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      minimum-idle: 10
+      maximum-pool-size: 30
+      idle-timeout: 30000
+      pool-name: GymAppHikariPool-Staging
+      auto-commit: true
+      connection-timeout: 30000
+      max-lifetime: 1800000
+  jpa:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: validate  # Only validate schema for staging
+server:
+  port: 9099

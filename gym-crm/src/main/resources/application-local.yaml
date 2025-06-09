@@ -1,0 +1,25 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gym_app
+    username: local_user
+    password: 123kjnvs&^%$%^&*
+    driver-class-name: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+      idle-timeout: 30000
+      pool-name: GymAppHikariPool-Local
+      auto-commit: true
+      connection-timeout: 30000
+      max-lifetime: 1800000
+  jpa:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: create  # Auto-create schema for local development
+server:
+  port: 9000
