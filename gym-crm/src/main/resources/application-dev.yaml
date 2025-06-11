@@ -21,6 +21,6 @@ spring:
       hibernate:
         hbm2ddl:
           auto: create  # Update schema for development
-        show_sql: true
+        show_sql: false
 server:
   port: 8080

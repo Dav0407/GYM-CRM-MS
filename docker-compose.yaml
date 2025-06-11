@@ -17,7 +17,26 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
+  # --------------------------- MESSAGE BROKER ---------------------------
+  activemq:
+    image: apache/activemq-classic:latest
+    container_name: activemq
+    restart: unless-stopped
+    ports:
+      - "61616:61616"  # JMS port
+      - "8161:8161"    # Web console port
+    environment:
+      ACTIVEMQ_ADMIN_LOGIN: admin
+      ACTIVEMQ_ADMIN_PASSCODE: admin
+      ACTIVEMQ_CONFIG_NAME: activemq
+      ACTIVEMQ_CONFIG_DEFAULTACCOUNT: "false"
+    volumes:
+      - activemq-data:/opt/apache-activemq/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8161/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   # --------------------------- SPRING BOOT SERVICES ---------------------------
   gym-crm:
     build:
@@ -78,3 +97,4 @@ services:
 
 volumes:
   postgres-data:
+  activemq-data:

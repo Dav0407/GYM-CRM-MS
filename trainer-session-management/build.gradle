@@ -40,8 +40,8 @@ dependencies {
     //Eureka Client
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-eureka-client'
 
-    //Spring-Security
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
+    //ActiveMQ
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-activemq'
 
     //JWT
     implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: jjwtVersion

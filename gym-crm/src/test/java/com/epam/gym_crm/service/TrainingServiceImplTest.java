@@ -19,7 +19,7 @@ import com.epam.gym_crm.entity.TrainingType;
 import com.epam.gym_crm.entity.User;
 import com.epam.gym_crm.mapper.TrainingMapper;
 import com.epam.gym_crm.repository.TrainingRepository;
-import com.epam.gym_crm.service.impl.TrainerWorkingHoursServiceImpl;
+import com.epam.gym_crm.service.impl.TrainerWorkingHoursMessageProducer;
 import com.epam.gym_crm.service.impl.TrainingServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,7 +70,7 @@ class TrainingServiceImplTest {
     private TrainingServiceImpl trainingService;
 
     @Mock
-    private TrainerWorkingHoursServiceImpl trainerWorkingHoursService;
+    private TrainerWorkingHoursMessageProducer trainerWorkingHoursService;
 
     private Trainee trainee;
     private Trainer trainer;
@@ -366,8 +367,7 @@ class TrainingServiceImplTest {
         when(trainingTypeService.findByValue("Yoga")).thenReturn(Optional.of(trainingType));
         when(trainingRepository.save(any(Training.class))).thenReturn(training);
         when(trainingMapper.toTrainingResponseDTO(training)).thenReturn(trainingResponseDTO);
-        when(trainerWorkingHoursService.computeTrainerHours(any(TrainerWorkloadRequest.class)))
-                .thenReturn(new TrainerWorkloadResponse());
+        doNothing().when(trainerWorkingHoursService).sendMessage(any(TrainerWorkloadRequest.class));
 
         // Act
         TrainingResponseDTO result = trainingService.addTraining(request);
@@ -377,7 +377,6 @@ class TrainingServiceImplTest {
         assertEquals("Test Training", result.getTrainingName());
         verify(trainingRepository).save(any(Training.class));
         verify(traineeTrainerService).createTraineeTrainer("trainee1", "trainer1");
-        verify(trainerWorkingHoursService).computeTrainerHours(any(TrainerWorkloadRequest.class));
     }
 
     @Test

@@ -6,7 +6,6 @@ import com.epam.gym_crm.dto.request.GetTrainerTrainingsRequestDTO;
 import com.epam.gym_crm.dto.request.TrainerWorkloadRequest;
 import com.epam.gym_crm.dto.response.TraineeTrainingResponseDTO;
 import com.epam.gym_crm.dto.response.TrainerTrainingResponseDTO;
-import com.epam.gym_crm.dto.response.TrainerWorkloadResponse;
 import com.epam.gym_crm.dto.response.TrainingResponseDTO;
 import com.epam.gym_crm.entity.Training;
 import com.epam.gym_crm.entity.TrainingType;
@@ -29,7 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TrainingServiceImpl implements TrainingService {
 
-    private final TrainerWorkingHoursServiceImpl trainerWorkingHoursService;
+    private final TrainerWorkingHoursMessageProducer trainerWorkingHoursService;
 
     private final TrainingRepository trainingRepository;
 
@@ -132,8 +131,7 @@ public class TrainingServiceImpl implements TrainingService {
 
         TrainerWorkloadRequest trainerWorkloadRequest = trainer.getUser().getIsActive() ? addWorkingHours(training) : deleteWorkingHours(training);
 
-        TrainerWorkloadResponse trainerWorkloadResponse = trainerWorkingHoursService.computeTrainerHours(trainerWorkloadRequest);
-        log.info("Saved trainer workload: {}", trainerWorkloadResponse);
+        trainerWorkingHoursService.sendMessage(trainerWorkloadRequest);
 
         Training savedTraining = trainingRepository.save(training);
         log.info("Training saved successfully with ID: {}", savedTraining.getId());
@@ -148,7 +146,7 @@ public class TrainingServiceImpl implements TrainingService {
         Training training = trainingRepository.findById(trainingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Training not found with id: " + trainingId));
 
-        trainerWorkingHoursService.computeTrainerHours(deleteWorkingHours(training));
+        trainerWorkingHoursService.sendMessage(deleteWorkingHours(training));
 
         trainingRepository.deleteById(trainingId);
     }

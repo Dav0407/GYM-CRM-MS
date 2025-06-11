@@ -36,11 +36,8 @@ dependencies {
     //Eureka Client
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-eureka-client'
 
-    //Open Feign
-    implementation group: 'org.springframework.cloud', name:'spring-cloud-starter-openfeign'
-
-    //Circuit Breaker
-    implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-circuitbreaker-resilience4j'
+    //ActiveMQ
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-activemq'
 
     //Spring-Web
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'

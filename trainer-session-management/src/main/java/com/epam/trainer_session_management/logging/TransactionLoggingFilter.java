@@ -14,7 +14,7 @@ import java.io.IOException;
 @Component
 public class TransactionLoggingFilter extends OncePerRequestFilter {
 
-    private static final String TRANSACTION_ID = "X-Transaction-Id";
+    private static final String TRANSACTION_ID = "transactionId";
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
