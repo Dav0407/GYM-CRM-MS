@@ -10,7 +10,6 @@ import com.epam.gym_crm.dto.response.TraineeTrainingResponseDTO;
 import com.epam.gym_crm.dto.response.TrainerProfileResponseDTO;
 import com.epam.gym_crm.dto.response.TrainerResponseDTO;
 import com.epam.gym_crm.dto.response.TrainerTrainingResponseDTO;
-import com.epam.gym_crm.dto.response.TrainerWorkloadResponse;
 import com.epam.gym_crm.dto.response.TrainingResponseDTO;
 import com.epam.gym_crm.entity.Trainee;
 import com.epam.gym_crm.entity.Trainer;
@@ -74,11 +73,9 @@ class TrainingServiceImplTest {
 
     private Trainee trainee;
     private Trainer trainer;
-    private TrainingType trainingType;
     private Training training;
     private TraineeTrainingResponseDTO traineeTrainingResponseDTO;
     private TrainerTrainingResponseDTO trainerTrainingResponseDTO;
-    private TrainingResponseDTO trainingResponseDTO;
     private TrainerProfileResponseDTO trainerProfileResponseDTO;
     private TraineeProfileResponseDTO traineeProfileResponseDTO;
 
@@ -97,7 +94,7 @@ class TrainingServiceImplTest {
         trainerUser.setFirstName("TrainerFirst");
         trainerUser.setLastName("TrainerLast");
 
-        trainingType = new TrainingType();
+        TrainingType trainingType = new TrainingType();
         trainingType.setId(1L);
         trainingType.setTrainingTypeName("Strength");
 
@@ -145,7 +142,7 @@ class TrainingServiceImplTest {
         traineeResponseDTO.setFirstName("TraineeFirst");
         traineeResponseDTO.setLastName("TraineeLast");
 
-        trainingResponseDTO = new TrainingResponseDTO();
+        TrainingResponseDTO trainingResponseDTO = new TrainingResponseDTO();
         trainingResponseDTO.setTrainingName("Test Training");
         trainingResponseDTO.setTrainingDate(new Date());
         trainingResponseDTO.setTrainingType("Strength");
