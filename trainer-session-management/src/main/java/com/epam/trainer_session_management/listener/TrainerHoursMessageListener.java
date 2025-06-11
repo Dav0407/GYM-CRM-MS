@@ -18,10 +18,7 @@ public class TrainerHoursMessageListener {
     private final TrainerWorkingHoursService trainerWorkingHoursService;
 
     @JmsListener(destination = "${application.broker.destination}", containerFactory = "jmsListenerContainerFactory")
-    public void onMessage(
-            @Payload TrainerWorkloadRequest message,
-            @Header("transactionId") String transactionId
-    ) {
+    public void onMessage(@Payload TrainerWorkloadRequest message, @Header("transactionId") String transactionId) {
         MDC.put("transactionId", transactionId);
         try {
             log.info("Message received: {}", message);
