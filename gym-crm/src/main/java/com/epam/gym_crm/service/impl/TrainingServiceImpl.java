@@ -126,7 +126,7 @@ public class TrainingServiceImpl implements TrainingService {
         training.setTrainer(trainer);
         training.setTrainingType(trainingType);
         training.setTrainingDate(request.getTrainingDate());
-        training.setTrainingDuration(request.getTrainingDuration());
+        training.setTrainingDuration(request.getTrainingDurationInMinutes());
         training.setTrainingName(request.getTrainingName());
 
         TrainerWorkloadRequest trainerWorkloadRequest = trainer.getUser().getIsActive() ? addWorkingHours(training) : deleteWorkingHours(training);
@@ -158,7 +158,7 @@ public class TrainingServiceImpl implements TrainingService {
                 .trainerLastName(training.getTrainer().getUser().getLastName())
                 .isActive(training.getTrainer().getUser().getIsActive())
                 .trainingDate(training.getTrainingDate())
-                .trainingDuration(training.getTrainingDuration())
+                .trainingDurationInMinutes(training.getTrainingDuration())
                 .actionType(TrainerWorkloadRequest.ActionType.ADD)
                 .build();
     }
@@ -170,7 +170,7 @@ public class TrainingServiceImpl implements TrainingService {
                 .trainerLastName(training.getTrainer().getUser().getLastName())
                 .isActive(training.getTrainer().getUser().getIsActive())
                 .trainingDate(training.getTrainingDate())
-                .trainingDuration(training.getTrainingDuration())
+                .trainingDurationInMinutes(training.getTrainingDuration())
                 .actionType(TrainerWorkloadRequest.ActionType.DELETE)
                 .build();
     }

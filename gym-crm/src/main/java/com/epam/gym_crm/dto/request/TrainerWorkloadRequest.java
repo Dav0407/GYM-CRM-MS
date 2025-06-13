@@ -22,7 +22,7 @@ public class TrainerWorkloadRequest {
     private String trainerLastName;
     private Boolean isActive;
     private Date trainingDate;
-    private Integer trainingDuration;
+    private Integer trainingDurationInMinutes;
     private ActionType actionType;
 
     public enum ActionType {

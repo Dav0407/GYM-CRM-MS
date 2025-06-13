@@ -26,7 +26,6 @@ public class UpdateTrainerProfileRequestDTO {
     @NotBlank(message = "Username is required!")
     private String username;
 
-
     private String trainingTypeName;
 
     @NotNull(message = "IsActive is required!")

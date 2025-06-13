@@ -276,7 +276,7 @@ class TrainerWorkingHoursServiceImplTest {
                 .trainerLastName(lastName)
                 .isActive(isActive)
                 .trainingDate(trainingDate)
-                .trainingDuration(duration)
+                .trainingDurationInMinutes(duration)
                 .actionType(actionType)
                 .build();
     }

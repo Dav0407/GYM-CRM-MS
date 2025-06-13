@@ -69,8 +69,8 @@ public class TrainingControllerTest {
                 .traineeUsername("trainee.user")
                 .trainerUsername("trainer.user")
                 .trainingName("Morning Workout")
-                .trainingDate(dateFormat.parse("2023-12-31"))
-                .trainingDuration(60)
+                .trainingDate(dateFormat.parse("2025-12-31"))
+                .trainingDurationInMinutes(60)
                 .build();
 
         TrainingResponseDTO response = TrainingResponseDTO.builder()

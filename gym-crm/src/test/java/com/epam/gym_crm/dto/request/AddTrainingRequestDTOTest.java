@@ -29,7 +29,7 @@ class AddTrainingRequestDTOTest {
         assertThat(dto.getTrainerUsername()).isEqualTo("trainer456");
         assertThat(dto.getTrainingName()).isEqualTo("Advanced Java");
         assertThat(dto.getTrainingDate()).isEqualTo(trainingDate);
-        assertThat(dto.getTrainingDuration()).isEqualTo(120);
+        assertThat(dto.getTrainingDurationInMinutes()).isEqualTo(120);
     }
 
     @Test
@@ -40,14 +40,14 @@ class AddTrainingRequestDTOTest {
                 .trainerUsername("trainerX")
                 .trainingName("Machine Learning Basics")
                 .trainingDate(trainingDate)
-                .trainingDuration(90)
+                .trainingDurationInMinutes(90)
                 .build();
 
         assertThat(dto.getTraineeUsername()).isEqualTo("user1");
         assertThat(dto.getTrainerUsername()).isEqualTo("trainerX");
         assertThat(dto.getTrainingName()).isEqualTo("Machine Learning Basics");
         assertThat(dto.getTrainingDate()).isEqualTo(trainingDate);
-        assertThat(dto.getTrainingDuration()).isEqualTo(90);
+        assertThat(dto.getTrainingDurationInMinutes()).isEqualTo(90);
     }
 
     @Test

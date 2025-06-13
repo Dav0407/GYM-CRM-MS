@@ -27,7 +27,7 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
         String month = String.valueOf(localDate.getMonth());
         String username = request.getTrainerUsername();
 
-        float rawDurationHours = request.getTrainingDuration() / 60.0F;
+        float rawDurationHours = request.getTrainingDurationInMinutes() / 60.0F;
 
         //Treat inactive trainers' hours as DELETE even if ActionType is ADD
         boolean shouldSubtract = request.getActionType() == ActionType.DELETE || !request.getIsActive();

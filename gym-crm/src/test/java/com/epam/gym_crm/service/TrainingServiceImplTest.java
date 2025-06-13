@@ -327,7 +327,7 @@ class TrainingServiceImplTest {
         request.setTraineeUsername("trainee1");
         request.setTrainerUsername("trainer1");
         request.setTrainingDate(new Date());
-        request.setTrainingDuration(60);
+        request.setTrainingDurationInMinutes(60);
         request.setTrainingName("Test Training");
 
         // Mock entities

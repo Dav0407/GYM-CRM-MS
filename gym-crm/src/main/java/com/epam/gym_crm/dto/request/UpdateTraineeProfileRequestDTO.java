@@ -2,6 +2,7 @@ package com.epam.gym_crm.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,7 +29,9 @@ public class UpdateTraineeProfileRequestDTO {
     @NotBlank(message = "Username can not be null or empty")
     private String username;
 
+    @Past(message = "dateOfBirth can not be future")
     private Date dateOfBirth;
+
     private String address;
 
     @NotNull(message = "IsActive can not be null or empty")
