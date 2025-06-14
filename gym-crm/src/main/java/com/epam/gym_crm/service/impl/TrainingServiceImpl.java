@@ -63,6 +63,10 @@ public class TrainingServiceImpl implements TrainingService {
                 .map(trainingMapper::toTraineeTrainingResponseDTO)
                 .toList();
 
+        if (trainings.isEmpty()) {
+            throw new ResourceNotFoundException("No trainings found for trainer: " + trainerUsername);
+        }
+
         log.info("Found {} trainings for trainee: {}", trainings.size(), traineeUsername);
 
         return trainings;
@@ -98,6 +102,10 @@ public class TrainingServiceImpl implements TrainingService {
                 .stream()
                 .map(trainingMapper::toTrainerTrainingResponseDTO)
                 .toList();
+
+        if (trainings.isEmpty()) {
+            throw new ResourceNotFoundException("No trainings found for trainer: " + trainerUsername);
+        }
 
         log.info("Found {} trainings for trainer: {}", trainings.size(), trainerUsername);
 
