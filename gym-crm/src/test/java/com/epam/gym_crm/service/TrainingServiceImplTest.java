@@ -5,17 +5,17 @@ import com.epam.gym_crm.dto.request.GetTraineeTrainingsRequestDTO;
 import com.epam.gym_crm.dto.request.GetTrainerTrainingsRequestDTO;
 import com.epam.gym_crm.dto.request.TrainerWorkloadRequest;
 import com.epam.gym_crm.dto.response.TraineeProfileResponseDTO;
-import com.epam.gym_crm.dto.response.TraineeResponseDTO;
 import com.epam.gym_crm.dto.response.TraineeTrainingResponseDTO;
 import com.epam.gym_crm.dto.response.TrainerProfileResponseDTO;
-import com.epam.gym_crm.dto.response.TrainerResponseDTO;
 import com.epam.gym_crm.dto.response.TrainerTrainingResponseDTO;
 import com.epam.gym_crm.dto.response.TrainingResponseDTO;
 import com.epam.gym_crm.entity.Trainee;
+import com.epam.gym_crm.entity.TraineeTrainer;
 import com.epam.gym_crm.entity.Trainer;
 import com.epam.gym_crm.entity.Training;
 import com.epam.gym_crm.entity.TrainingType;
 import com.epam.gym_crm.entity.User;
+import com.epam.gym_crm.exception.ResourceNotFoundException;
 import com.epam.gym_crm.mapper.TrainingMapper;
 import com.epam.gym_crm.repository.TrainingRepository;
 import com.epam.gym_crm.service.impl.TrainerWorkingHoursMessageProducer;
@@ -65,11 +65,11 @@ class TrainingServiceImplTest {
     @Mock
     private TrainingMapper trainingMapper;
 
-    @InjectMocks
-    private TrainingServiceImpl trainingService;
-
     @Mock
     private TrainerWorkingHoursMessageProducer trainerWorkingHoursService;
+
+    @InjectMocks
+    private TrainingServiceImpl trainingService;
 
     private Trainee trainee;
     private Trainer trainer;
@@ -78,6 +78,7 @@ class TrainingServiceImplTest {
     private TrainerTrainingResponseDTO trainerTrainingResponseDTO;
     private TrainerProfileResponseDTO trainerProfileResponseDTO;
     private TraineeProfileResponseDTO traineeProfileResponseDTO;
+    private TraineeTrainer mockTraineeTrainer;
 
     @BeforeEach
     void setUp() {
@@ -93,6 +94,7 @@ class TrainingServiceImplTest {
         trainerUser.setUsername("trainer1");
         trainerUser.setFirstName("TrainerFirst");
         trainerUser.setLastName("TrainerLast");
+        trainerUser.setIsActive(true);
 
         TrainingType trainingType = new TrainingType();
         trainingType.setId(1L);
@@ -132,24 +134,6 @@ class TrainingServiceImplTest {
         trainerTrainingResponseDTO.setTrainingDuration(60);
         trainerTrainingResponseDTO.setTraineeName("TraineeFirst TraineeLast");
 
-        TrainerResponseDTO trainerResponseDTO = new TrainerResponseDTO();
-        trainerResponseDTO.setId(1L);
-        trainerResponseDTO.setFirstName("TraineeFirst");
-        trainerResponseDTO.setLastName("TraineeLast");
-
-        TraineeResponseDTO traineeResponseDTO = new TraineeResponseDTO();
-        traineeResponseDTO.setId(1L);
-        traineeResponseDTO.setFirstName("TraineeFirst");
-        traineeResponseDTO.setLastName("TraineeLast");
-
-        TrainingResponseDTO trainingResponseDTO = new TrainingResponseDTO();
-        trainingResponseDTO.setTrainingName("Test Training");
-        trainingResponseDTO.setTrainingDate(new Date());
-        trainingResponseDTO.setTrainingType("Strength");
-        trainingResponseDTO.setTrainingDuration(60);
-        trainingResponseDTO.setTrainer(trainerResponseDTO);
-        trainingResponseDTO.setTrainee(traineeResponseDTO);
-
         // Create TrainerProfileResponseDTO
         trainerProfileResponseDTO = new TrainerProfileResponseDTO();
         trainerProfileResponseDTO.setId(1L);
@@ -171,7 +155,13 @@ class TrainingServiceImplTest {
         traineeProfileResponseDTO.setBirthDate(new Date());
         traineeProfileResponseDTO.setAddress("123 Trainee St");
         traineeProfileResponseDTO.setTrainers(new ArrayList<>());
+
+        mockTraineeTrainer = new TraineeTrainer();
+        mockTraineeTrainer.setTrainee(trainee);
+        mockTraineeTrainer.setTrainer(trainer);
     }
+
+    // ========== EXISTING TESTS ==========
 
     @Test
     void getTraineeTrainings_Success() {
@@ -185,7 +175,6 @@ class TrainingServiceImplTest {
 
         List<Training> trainings = List.of(training);
 
-        // Fix: Use a concrete object instead of any()
         when(trainerService.getTrainerByUsername("trainer1")).thenReturn(trainerProfileResponseDTO);
         when(trainingRepository.findAllTraineeTrainings(
                 eq("trainee1"), eq("trainer1"), any(Date.class), any(Date.class), eq("Strength")))
@@ -238,6 +227,59 @@ class TrainingServiceImplTest {
         verify(trainingRepository, never()).findAllTraineeTrainings(anyString(), anyString(), any(), any(), anyString());
     }
 
+    // ========== NEW TESTS FOR MISSING COVERAGE ==========
+
+    @Test
+    void getTraineeTrainings_NoTrainingsFound_ThrowsResourceNotFoundException() {
+        // Arrange
+        GetTraineeTrainingsRequestDTO request = new GetTraineeTrainingsRequestDTO();
+        request.setTraineeUsername("trainee1");
+        request.setTrainerUsername("trainer1");
+        request.setFrom(new Date(System.currentTimeMillis() - 86400000));
+        request.setTo(new Date());
+        request.setTrainingType("Strength");
+
+        when(trainerService.getTrainerByUsername("trainer1")).thenReturn(trainerProfileResponseDTO);
+        when(trainingRepository.findAllTraineeTrainings(
+                eq("trainee1"), eq("trainer1"), any(Date.class), any(Date.class), eq("Strength")))
+                .thenReturn(new ArrayList<>()); // Return empty list
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> trainingService.getTraineeTrainings(request));
+
+        assertTrue(exception.getMessage().contains("No trainings found for trainer:"));
+    }
+
+    @Test
+    void getTraineeTrainings_WithUsernameSpaces_TrimsCorrectly() {
+        // Arrange
+        GetTraineeTrainingsRequestDTO request = new GetTraineeTrainingsRequestDTO();
+        request.setTraineeUsername("  trainee1  "); // with spaces
+        request.setTrainerUsername("  trainer1  "); // with spaces
+        request.setTrainingType("Strength");
+
+        List<Training> trainings = List.of(training);
+
+        when(trainerService.getTrainerByUsername("trainer1")).thenReturn(trainerProfileResponseDTO);
+        when(trainingRepository.findAllTraineeTrainings(
+                eq("trainee1"), eq("trainer1"), any(), any(), eq("Strength")))
+                .thenReturn(trainings);
+        when(trainingMapper.toTraineeTrainingResponseDTO(any(Training.class)))
+                .thenReturn(traineeTrainingResponseDTO);
+
+        // Act
+        List<TraineeTrainingResponseDTO> result = trainingService.getTraineeTrainings(request);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        // Verify that trimmed usernames were used
+        verify(trainerService).getTrainerByUsername("trainer1"); // trimmed
+        verify(trainingRepository).findAllTraineeTrainings(
+                eq("trainee1"), eq("trainer1"), any(), any(), eq("Strength")); // trimmed
+    }
+
     @Test
     void getTrainerTrainings_Success() {
         // Arrange
@@ -249,7 +291,6 @@ class TrainingServiceImplTest {
 
         List<Training> trainings = List.of(training);
 
-        // Fix: Use concrete objects instead of any()
         when(trainerService.getTrainerByUsername("trainer1")).thenReturn(trainerProfileResponseDTO);
         when(traineeService.getTraineeByUsername("trainee1")).thenReturn(traineeProfileResponseDTO);
         when(trainingRepository.findAllTrainerTrainings(
@@ -308,7 +349,6 @@ class TrainingServiceImplTest {
         request.setTrainerUsername("trainer1");
         request.setTraineeUsername("nonexistent");
 
-        // Fix: Use concrete object instead of any()
         when(trainerService.getTrainerByUsername("trainer1")).thenReturn(trainerProfileResponseDTO);
         when(traineeService.getTraineeByUsername("nonexistent")).thenReturn(null);
 
@@ -318,6 +358,51 @@ class TrainingServiceImplTest {
 
         assertTrue(exception.getMessage().contains("Trainee not found with username:"));
         verify(trainingRepository, never()).findAllTrainerTrainings(anyString(), anyString(), any(), any());
+    }
+
+    @Test
+    void getTrainerTrainings_NoTrainingsFound_ThrowsResourceNotFoundException() {
+        // Arrange
+        GetTrainerTrainingsRequestDTO request = new GetTrainerTrainingsRequestDTO();
+        request.setTrainerUsername("trainer1");
+        request.setTraineeUsername("trainee1");
+
+        when(trainerService.getTrainerByUsername("trainer1")).thenReturn(trainerProfileResponseDTO);
+        when(traineeService.getTraineeByUsername("trainee1")).thenReturn(traineeProfileResponseDTO);
+        when(trainingRepository.findAllTrainerTrainings(
+                eq("trainer1"), eq("trainee1"), any(), any()))
+                .thenReturn(new ArrayList<>()); // Return empty list
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> trainingService.getTrainerTrainings(request));
+
+        assertTrue(exception.getMessage().contains("No trainings found for trainer:"));
+    }
+
+    @Test
+    void getTrainerTrainings_WithNullTraineeUsername_Success() {
+        // Arrange
+        GetTrainerTrainingsRequestDTO request = new GetTrainerTrainingsRequestDTO();
+        request.setTrainerUsername("trainer1");
+        request.setTraineeUsername(null); // null trainee username
+
+        List<Training> trainings = List.of(training);
+
+        when(trainerService.getTrainerByUsername("trainer1")).thenReturn(trainerProfileResponseDTO);
+        when(trainingRepository.findAllTrainerTrainings(
+                eq("trainer1"), eq(null), any(), any()))
+                .thenReturn(trainings);
+        when(trainingMapper.toTrainerTrainingResponseDTO(any(Training.class)))
+                .thenReturn(trainerTrainingResponseDTO);
+
+        // Act
+        List<TrainerTrainingResponseDTO> result = trainingService.getTrainerTrainings(request);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(traineeService, never()).getTraineeByUsername(anyString()); // Should not be called when traineeUsername is null
     }
 
     @Test
@@ -350,6 +435,7 @@ class TrainingServiceImplTest {
         trainingType.setTrainingTypeName("Yoga");
 
         Training training = new Training();
+        training.setId(1L);
         training.setTrainingName("Test Training");
         training.setTrainee(trainee);
         training.setTrainer(trainer);
@@ -365,6 +451,7 @@ class TrainingServiceImplTest {
         when(trainingRepository.save(any(Training.class))).thenReturn(training);
         when(trainingMapper.toTrainingResponseDTO(training)).thenReturn(trainingResponseDTO);
         doNothing().when(trainerWorkingHoursService).sendMessage(any(TrainerWorkloadRequest.class));
+        when(traineeTrainerService.createTraineeTrainer(anyString(), anyString())).thenReturn(mockTraineeTrainer);
 
         // Act
         TrainingResponseDTO result = trainingService.addTraining(request);
@@ -374,6 +461,69 @@ class TrainingServiceImplTest {
         assertEquals("Test Training", result.getTrainingName());
         verify(trainingRepository).save(any(Training.class));
         verify(traineeTrainerService).createTraineeTrainer("trainee1", "trainer1");
+        verify(trainerWorkingHoursService).sendMessage(any(TrainerWorkloadRequest.class));
+    }
+
+    @Test
+    void addTraining_InactiveTrainer_SendsDeleteWorkingHours() {
+        // Arrange
+        AddTrainingRequestDTO request = new AddTrainingRequestDTO();
+        request.setTraineeUsername("trainee1");
+        request.setTrainerUsername("trainer1");
+        request.setTrainingDate(new Date());
+        request.setTrainingDurationInMinutes(60);
+        request.setTrainingName("Test Training");
+
+        // Mock entities with INACTIVE trainer
+        Trainee trainee = new Trainee();
+        User traineeUser = new User();
+        traineeUser.setUsername("trainee1");
+        trainee.setUser(traineeUser);
+
+        Trainer trainer = new Trainer();
+        User trainerUser = new User();
+        trainerUser.setUsername("trainer1");
+        trainerUser.setIsActive(false); // INACTIVE trainer
+        trainer.setUser(trainerUser);
+
+        TrainingType specialization = new TrainingType();
+        specialization.setTrainingTypeName("Yoga");
+        trainer.setSpecialization(specialization);
+
+        TrainingType trainingType = new TrainingType();
+        trainingType.setTrainingTypeName("Yoga");
+
+        Training training = new Training();
+        training.setId(1L);
+        training.setTrainingName("Test Training");
+        training.setTrainee(trainee);
+        training.setTrainer(trainer);
+        training.setTrainingType(trainingType);
+        training.setTrainingDate(request.getTrainingDate());
+        training.setTrainingDuration(request.getTrainingDurationInMinutes());
+
+        TrainingResponseDTO trainingResponseDTO = new TrainingResponseDTO();
+        trainingResponseDTO.setTrainingName("Test Training");
+
+        // Mock service calls
+        when(traineeService.getTraineeEntityByUsername("trainee1")).thenReturn(trainee);
+        when(trainerService.getTrainerEntityByUsername("trainer1")).thenReturn(trainer);
+        when(trainingTypeService.findByValue("Yoga")).thenReturn(Optional.of(trainingType));
+        when(trainingRepository.save(any(Training.class))).thenReturn(training);
+        when(trainingMapper.toTrainingResponseDTO(training)).thenReturn(trainingResponseDTO);
+        doNothing().when(trainerWorkingHoursService).sendMessage(any(TrainerWorkloadRequest.class));
+        when(traineeTrainerService.createTraineeTrainer(anyString(), anyString())).thenReturn(mockTraineeTrainer);
+
+        // Act
+        TrainingResponseDTO result = trainingService.addTraining(request);
+
+        // Assert
+        assertNotNull(result);
+        verify(trainerWorkingHoursService).sendMessage(any(TrainerWorkloadRequest.class));
+        // Verify that DELETE action was sent due to inactive trainer
+        verify(trainerWorkingHoursService).sendMessage(org.mockito.ArgumentMatchers.argThat(
+                request1 -> request1.getActionType() == TrainerWorkloadRequest.ActionType.DELETE
+        ));
     }
 
     @Test
@@ -428,5 +578,60 @@ class TrainingServiceImplTest {
 
         assertTrue(exception.getMessage().contains("Invalid training type:"));
         verify(trainingRepository, never()).save(any(Training.class));
+    }
+
+    @Test
+    void deleteTraining_Success() {
+        // Arrange
+        Long trainingId = 1L;
+
+        // Create a training with proper structure for delete workload message
+        Training training = new Training();
+        training.setId(trainingId);
+        training.setTrainingDate(new Date());
+        training.setTrainingDuration(60);
+
+        Trainer trainer = new Trainer();
+        User trainerUser = new User();
+        trainerUser.setUsername("trainer1");
+        trainerUser.setFirstName("TrainerFirst");
+        trainerUser.setLastName("TrainerLast");
+        trainerUser.setIsActive(true);
+        trainer.setUser(trainerUser);
+        training.setTrainer(trainer);
+
+        when(trainingRepository.findById(trainingId)).thenReturn(Optional.of(training));
+        doNothing().when(trainerWorkingHoursService).sendMessage(any(TrainerWorkloadRequest.class));
+        doNothing().when(trainingRepository).deleteById(trainingId);
+
+        // Act
+        trainingService.deleteTraining(trainingId);
+
+        // Assert
+        verify(trainingRepository).findById(trainingId);
+        verify(trainerWorkingHoursService).sendMessage(any(TrainerWorkloadRequest.class));
+        verify(trainingRepository).deleteById(trainingId);
+
+        // Verify that DELETE action was sent
+        verify(trainerWorkingHoursService).sendMessage(org.mockito.ArgumentMatchers.argThat(
+                request -> request.getActionType() == TrainerWorkloadRequest.ActionType.DELETE
+        ));
+    }
+
+    @Test
+    void deleteTraining_TrainingNotFound_ThrowsResourceNotFoundException() {
+        // Arrange
+        Long trainingId = 999L;
+
+        when(trainingRepository.findById(trainingId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> trainingService.deleteTraining(trainingId));
+
+        assertTrue(exception.getMessage().contains("Training not found with id:"));
+        verify(trainingRepository).findById(trainingId);
+        verify(trainingRepository, never()).deleteById(trainingId);
+        verify(trainerWorkingHoursService, never()).sendMessage(any(TrainerWorkloadRequest.class));
     }
 }
