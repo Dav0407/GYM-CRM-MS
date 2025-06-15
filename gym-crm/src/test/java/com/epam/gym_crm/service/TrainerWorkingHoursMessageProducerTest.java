@@ -90,7 +90,7 @@ class TrainerWorkingHoursMessageProducerTest {
     }
 
     @Test
-    void sendMessage_ShouldSetTransactionIdFromMDC() throws JMSException, JMSException {
+    void sendMessage_ShouldSetTransactionIdFromMDC() throws JMSException {
 
         messageProducer.sendMessage(testRequest);
 

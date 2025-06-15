@@ -451,7 +451,7 @@ class UserServiceImplTest {
 
 
     @Test
-    void refreshToken_UserNotFound_DoesNothing() throws IOException {
+    void refreshToken_UserNotFound_DoesNothing() {
         String refreshToken = "validRefreshToken";
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + refreshToken);
         when(jwtService.isRefreshToken(refreshToken)).thenReturn(true);
