@@ -5,7 +5,7 @@ import com.epam.trainer_session_management.dto.TrainerWorkloadResponse;
 
 public interface TrainerWorkingHoursService {
 
-    TrainerWorkloadResponse calculateAndSave(TrainerWorkloadRequest request);
+    void calculateAndSave(TrainerWorkloadRequest request);
 
     TrainerWorkloadResponse getTrainerWorkingHours(String trainerUsername, String year, String month);
 }

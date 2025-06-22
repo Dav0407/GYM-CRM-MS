@@ -1,10 +1,12 @@
 package com.epam.trainer_session_management.service.impl;
 
+import com.epam.trainer_session_management.document.TrainerWorkingHours;
 import com.epam.trainer_session_management.dto.TrainerWorkloadRequest;
 import com.epam.trainer_session_management.dto.TrainerWorkloadResponse;
 import com.epam.trainer_session_management.enums.ActionType;
-import com.epam.trainer_session_management.model.TrainerWorkingHours;
+import com.epam.trainer_session_management.repository.TrainerWorkingHoursRepository;
 import com.epam.trainer_session_management.service.TrainerWorkingHoursService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -12,52 +14,48 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@RequiredArgsConstructor
 public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursService {
 
-    private static final Map<String, TrainerWorkingHours> TRAINER_WORKLOAD_MAP = new ConcurrentHashMap<>();
+    private static final float DAILY_HOUR_LIMIT = 8.0F;
+
+    private final TrainerWorkingHoursRepository repository;
 
     @Override
-    public TrainerWorkloadResponse calculateAndSave(TrainerWorkloadRequest request) {
+    public void calculateAndSave(TrainerWorkloadRequest request) {
         LocalDate localDate = toLocalDate(request.getTrainingDate());
         String year = String.valueOf(localDate.getYear());
         String month = String.valueOf(localDate.getMonth());
+        String day = String.valueOf(localDate.getDayOfMonth());
         String username = request.getTrainerUsername();
 
         float rawDurationHours = request.getTrainingDurationInMinutes() / 60.0F;
-
-        //Treat inactive trainers' hours as DELETE even if ActionType is ADD
         boolean shouldSubtract = request.getActionType() == ActionType.DELETE || !request.getIsActive();
         float durationHours = shouldSubtract ? -rawDurationHours : rawDurationHours;
 
-        TRAINER_WORKLOAD_MAP.compute(username, (key, existingData) -> {
-            if (existingData == null) {
-                return createNewTrainerRecord(request, year, month, durationHours);
-            }
-            return updateTrainerRecord(existingData, year, month, durationHours);
-        });
+        TrainerWorkingHours existing = repository.findById(username).orElse(null);
 
-        TrainerWorkingHours updated = TRAINER_WORKLOAD_MAP.get(username);
-        TrainerWorkingHours.Month updatedMonth = findMonth(updated, year, month);
+        // Check for 8-hour a day limit (only for ADD operations)
+        if (!shouldSubtract) {
+            validateDailyHourLimit(existing, year, month, day, durationHours, username);
+        }
 
-        System.out.println("Saved or updated: " + updated);
-        return TrainerWorkloadResponse.builder()
-                .trainerUsername(updated.getTrainerUsername())
-                .year(year)
-                .month(month)
-                .workingHours(updatedMonth.getWorkingHours())
-                .build();
+        TrainerWorkingHours updated;
+        if (existing == null) {
+            updated = createNewTrainerRecord(request, year, month, day, durationHours);
+        } else {
+            updated = updateTrainerRecord(existing, year, month, day, durationHours);
+        }
+
+        repository.save(updated); // persist changes
     }
 
     @Override
     public TrainerWorkloadResponse getTrainerWorkingHours(String trainerUsername, String year, String month) {
-        TrainerWorkingHours trainerWorkingHours = TRAINER_WORKLOAD_MAP.get(trainerUsername);
-        if (trainerWorkingHours == null) {
-            throw new IllegalArgumentException("Trainer not found: " + trainerUsername);
-        }
+        TrainerWorkingHours trainerWorkingHours = repository.findById(trainerUsername)
+                .orElseThrow(() -> new IllegalArgumentException("Trainer not found: " + trainerUsername));
 
         TrainerWorkingHours.Month monthEntry = trainerWorkingHours.getYears().stream()
                 .filter(y -> y.getYear().equals(year))
@@ -66,23 +64,60 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("No data found for year " + year + " and month " + month));
 
-        System.out.println("Read: " + trainerWorkingHours);
         return TrainerWorkloadResponse.builder()
                 .trainerUsername(trainerWorkingHours.getTrainerUsername())
                 .year(year)
                 .month(month)
-                .workingHours(monthEntry.getWorkingHours())
+                .workingHours(monthEntry.getMonthlyWorkingHours())
                 .build();
+    }
+
+    private void validateDailyHourLimit(TrainerWorkingHours existing, String year, String month, String day, float additionalHours, String username) {
+        if (existing == null) {
+            // New trainer record, check if additional hours exceed the limit
+            if (additionalHours > DAILY_HOUR_LIMIT) {
+                throw new IllegalArgumentException(
+                        String.format("Cannot add %.2f hours for trainer %s on %s-%s-%s. Daily limit is %.1f hours.",
+                                additionalHours, username, year, month, day, DAILY_HOUR_LIMIT));
+            }
+            return;
+        }
+
+        // Find existing daily hours
+        float currentDailyHours = existing.getYears().stream()
+                .filter(y -> y.getYear().equals(year))
+                .flatMap(y -> y.getMonths().stream())
+                .filter(m -> m.getMonth().equals(month))
+                .flatMap(m -> m.getDays().stream())
+                .filter(d -> d.getDay().equals(day))
+                .map(TrainerWorkingHours.Day::getDailyWorkingHours)
+                .findFirst()
+                .orElse(0.0F);
+
+        float newTotal = currentDailyHours + additionalHours;
+
+        if (newTotal > DAILY_HOUR_LIMIT) {
+            throw new IllegalArgumentException(
+                    String.format("Cannot add %.2f hours for trainer %s on %s-%s-%s. Current hours: %.2f, would exceed daily limit of %.1f hours.",
+                            additionalHours, username, year, month, day, currentDailyHours, DAILY_HOUR_LIMIT));
+        }
     }
 
     private static LocalDate toLocalDate(Date trainingDate) {
         return trainingDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
-    private TrainerWorkingHours createNewTrainerRecord(TrainerWorkloadRequest request, String year, String month, Float durationHours) {
+    private TrainerWorkingHours createNewTrainerRecord(TrainerWorkloadRequest request, String year, String month, String day, Float durationHours) {
+
+        TrainerWorkingHours.Day newDay = TrainerWorkingHours.Day.builder()
+                .day(day)
+                .dailyWorkingHours(Math.max(0.0f, durationHours))
+                .build();
+
         TrainerWorkingHours.Month newMonth = TrainerWorkingHours.Month.builder()
                 .month(month)
-                .workingHours(durationHours)
+                .monthlyWorkingHours(Math.max(0.0f, durationHours))
+                .days(new ArrayList<>(List.of(newDay)))
                 .build();
 
         TrainerWorkingHours.Year newYear = TrainerWorkingHours.Year.builder()
@@ -99,9 +134,9 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
                 .build();
     }
 
-    private TrainerWorkingHours updateTrainerRecord(TrainerWorkingHours existing, String year, String month, Float durationHours) {
-        List<TrainerWorkingHours.Year> years = existing.getYears();
+    private TrainerWorkingHours updateTrainerRecord(TrainerWorkingHours existing, String year, String month, String day, Float durationHours) {
 
+        List<TrainerWorkingHours.Year> years = existing.getYears();
         TrainerWorkingHours.Year yearEntry = years.stream()
                 .filter(y -> y.getYear().equals(year))
                 .findFirst()
@@ -121,14 +156,38 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
                 .orElseGet(() -> {
                     TrainerWorkingHours.Month newMonth = TrainerWorkingHours.Month.builder()
                             .month(month)
-                            .workingHours(0.0f)
+                            .monthlyWorkingHours(0.0f)
+                            .days(new ArrayList<>())
                             .build();
                     months.add(newMonth);
                     return newMonth;
                 });
 
-        float newTotal = monthEntry.getWorkingHours() + durationHours;
-        monthEntry.setWorkingHours(Math.max(0.0f, newTotal)); //prevent negative hours
+        // Update monthly hours
+        float newMonthlyTotal = monthEntry.getMonthlyWorkingHours() + durationHours;
+        monthEntry.setMonthlyWorkingHours(Math.max(0.0f, newMonthlyTotal));
+
+        List<TrainerWorkingHours.Day> days = monthEntry.getDays();
+        if (days == null) {
+            days = new ArrayList<>();
+            monthEntry.setDays(days);
+        }
+
+        final List<TrainerWorkingHours.Day> finalDays = days;
+        TrainerWorkingHours.Day dayEntry = days.stream()
+                .filter(d -> d.getDay().equals(day))
+                .findFirst()
+                .orElseGet(() -> {
+                    TrainerWorkingHours.Day newDay = TrainerWorkingHours.Day.builder()
+                            .day(day)
+                            .dailyWorkingHours(0.0f)
+                            .build();
+                    finalDays.add(newDay);
+                    return newDay;
+                });
+
+        float newDailyTotal = dayEntry.getDailyWorkingHours() + durationHours;
+        dayEntry.setDailyWorkingHours(Math.max(0.0f, newDailyTotal));
 
         return existing;
     }
