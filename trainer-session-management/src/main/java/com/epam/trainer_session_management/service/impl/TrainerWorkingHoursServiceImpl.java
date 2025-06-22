@@ -8,6 +8,7 @@ import com.epam.trainer_session_management.repository.TrainerWorkingHoursReposit
 import com.epam.trainer_session_management.service.TrainerWorkingHoursService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -19,12 +20,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursService {
 
+    private static final int MIN_YEAR = 2025;
+    private static final int MAX_YEAR = 2100;
     private static final float DAILY_HOUR_LIMIT = 8.0F;
 
     private final TrainerWorkingHoursRepository repository;
 
     @Override
     public void calculateAndSave(TrainerWorkloadRequest request) {
+        validateTrainerWorkloadRequest(request);
+
         LocalDate localDate = toLocalDate(request.getTrainingDate());
         String year = String.valueOf(localDate.getYear());
         String month = String.valueOf(localDate.getMonth());
@@ -54,6 +59,8 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
 
     @Override
     public TrainerWorkloadResponse getTrainerWorkingHours(String trainerUsername, String year, String month) {
+        validateGetTrainerWorkingHoursParameters(trainerUsername, year, month);
+
         TrainerWorkingHours trainerWorkingHours = repository.findById(trainerUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Trainer not found: " + trainerUsername));
 
@@ -199,5 +206,117 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
                 .filter(m -> m.getMonth().equals(month))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Month not found for trainer"));
+    }
+
+    private void validateTrainerWorkloadRequest(TrainerWorkloadRequest request) {
+
+        if (request == null) {
+            throw new IllegalArgumentException("TrainerWorkloadRequest cannot be null");
+        }
+
+        // Validate trainer username
+        if (!StringUtils.hasText(request.getTrainerUsername())) {
+            throw new IllegalArgumentException("Trainer username cannot be null or empty");
+        }
+        if (request.getTrainerUsername().trim().length() < 3) {
+            throw new IllegalArgumentException("Trainer username must be at least 3 characters long");
+        }
+        if (request.getTrainerUsername().trim().length() > 50) {
+            throw new IllegalArgumentException("Trainer username cannot exceed 50 characters");
+        }
+
+        // Validate trainer first name
+        if (!StringUtils.hasText(request.getTrainerFirstName())) {
+            throw new IllegalArgumentException("Trainer first name cannot be null or empty");
+        }
+        if (request.getTrainerFirstName().trim().length() > 50) {
+            throw new IllegalArgumentException("Trainer first name cannot exceed 100 characters");
+        }
+
+        // Validate trainer last name
+        if (!StringUtils.hasText(request.getTrainerLastName())) {
+            throw new IllegalArgumentException("Trainer last name cannot be null or empty");
+        }
+        if (request.getTrainerLastName().trim().length() > 50) {
+            throw new IllegalArgumentException("Trainer last name cannot exceed 100 characters");
+        }
+
+        // Validate isActive
+        if (request.getIsActive() == null) {
+            throw new IllegalArgumentException("IsActive field cannot be null");
+        }
+
+        // Validate training date
+        if (request.getTrainingDate() == null) {
+            throw new IllegalArgumentException("Training date cannot be null");
+        }
+
+        // Validate training duration
+        if (request.getTrainingDurationInMinutes() == null) {
+            throw new IllegalArgumentException("Training duration cannot be null");
+        }
+
+        // Validate action type
+        if (request.getActionType() == null) {
+            throw new IllegalArgumentException("Action type cannot be null");
+        }
+    }
+
+    private void validateGetTrainerWorkingHoursParameters(String trainerUsername, String year, String month) {
+        // Validate trainer username
+        if (!StringUtils.hasText(trainerUsername)) {
+            throw new IllegalArgumentException("Trainer username cannot be null or empty");
+        }
+        if (trainerUsername.trim().length() < 3) {
+            throw new IllegalArgumentException("Trainer username must be at least 3 characters long");
+        }
+        if (trainerUsername.trim().length() > 50) {
+            throw new IllegalArgumentException("Trainer username cannot exceed 50 characters");
+        }
+
+        // Validate year
+        if (!StringUtils.hasText(year)) {
+            throw new IllegalArgumentException("Year cannot be null or empty");
+        }
+
+        try {
+            int yearValue = Integer.parseInt(year);
+            if (yearValue < MIN_YEAR || yearValue > MAX_YEAR) {
+                throw new IllegalArgumentException("Year must be between " + MIN_YEAR + " and " + MAX_YEAR);
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Year must be a valid numeric value");
+        }
+
+        // Validate month
+        if (!StringUtils.hasText(month)) {
+            throw new IllegalArgumentException("Month cannot be null or empty");
+        }
+
+        // Check if a month is a valid month name or number
+        if (!isValidMonth(month)) {
+            throw new IllegalArgumentException("Month must be a valid month name (e.g., JANUARY, FEBRUARY) or number (1-12)");
+        }
+    }
+
+    private boolean isValidMonth(String month) {
+        try {
+            // Try parsing as a month number (1-12)
+            int monthNumber = Integer.parseInt(month);
+            return monthNumber >= 1 && monthNumber <= 12;
+        } catch (NumberFormatException e) {
+
+            try {
+                String upperMonth = month.toUpperCase();
+                return upperMonth.equals("JANUARY") || upperMonth.equals("FEBRUARY") ||
+                        upperMonth.equals("MARCH") || upperMonth.equals("APRIL") ||
+                        upperMonth.equals("MAY") || upperMonth.equals("JUNE") ||
+                        upperMonth.equals("JULY") || upperMonth.equals("AUGUST") ||
+                        upperMonth.equals("SEPTEMBER") || upperMonth.equals("OCTOBER") ||
+                        upperMonth.equals("NOVEMBER") || upperMonth.equals("DECEMBER");
+            } catch (Exception ex) {
+                return false;
+            }
+        }
     }
 }
