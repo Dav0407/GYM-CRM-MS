@@ -214,7 +214,7 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
             throw new IllegalArgumentException("TrainerWorkloadRequest cannot be null");
         }
 
-        // Validate trainer username
+
         if (!StringUtils.hasText(request.getTrainerUsername())) {
             throw new IllegalArgumentException("Trainer username cannot be null or empty");
         }
@@ -225,7 +225,7 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
             throw new IllegalArgumentException("Trainer username cannot exceed 50 characters");
         }
 
-        // Validate trainer first name
+
         if (!StringUtils.hasText(request.getTrainerFirstName())) {
             throw new IllegalArgumentException("Trainer first name cannot be null or empty");
         }
@@ -233,7 +233,7 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
             throw new IllegalArgumentException("Trainer first name cannot exceed 100 characters");
         }
 
-        // Validate trainer last name
+
         if (!StringUtils.hasText(request.getTrainerLastName())) {
             throw new IllegalArgumentException("Trainer last name cannot be null or empty");
         }
@@ -241,29 +241,29 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
             throw new IllegalArgumentException("Trainer last name cannot exceed 100 characters");
         }
 
-        // Validate isActive
+
         if (request.getIsActive() == null) {
             throw new IllegalArgumentException("IsActive field cannot be null");
         }
 
-        // Validate training date
+
         if (request.getTrainingDate() == null) {
             throw new IllegalArgumentException("Training date cannot be null");
         }
 
-        // Validate training duration
+
         if (request.getTrainingDurationInMinutes() == null) {
             throw new IllegalArgumentException("Training duration cannot be null");
         }
 
-        // Validate action type
+
         if (request.getActionType() == null) {
             throw new IllegalArgumentException("Action type cannot be null");
         }
     }
 
     private void validateGetTrainerWorkingHoursParameters(String trainerUsername, String year, String month) {
-        // Validate trainer username
+
         if (!StringUtils.hasText(trainerUsername)) {
             throw new IllegalArgumentException("Trainer username cannot be null or empty");
         }
@@ -274,10 +274,11 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
             throw new IllegalArgumentException("Trainer username cannot exceed 50 characters");
         }
 
-        // Validate year
+
         if (!StringUtils.hasText(year)) {
             throw new IllegalArgumentException("Year cannot be null or empty");
         }
+
 
         try {
             int yearValue = Integer.parseInt(year);
@@ -288,12 +289,12 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
             throw new IllegalArgumentException("Year must be a valid numeric value");
         }
 
-        // Validate month
+
         if (!StringUtils.hasText(month)) {
             throw new IllegalArgumentException("Month cannot be null or empty");
         }
 
-        // Check if a month is a valid month name or number
+
         if (!isValidMonth(month)) {
             throw new IllegalArgumentException("Month must be a valid month name (e.g., JANUARY, FEBRUARY) or number (1-12)");
         }
