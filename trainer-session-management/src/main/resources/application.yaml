@@ -5,6 +5,12 @@ spring:
     broker-url: tcp://activemq:61616
     user: admin
     password: admin
+  data:
+    mongodb:
+      uri: mongodb://trainer_session:s3cr3tp455w0rd@mongodb:27017/trainer_session_db?authSource=admin
+      username: trainer_session
+      password: s3cr3tp455w0rd
+      database: trainer_session_db
 
 server:
   port: 8766

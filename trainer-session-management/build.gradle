@@ -43,10 +43,8 @@ dependencies {
     //ActiveMQ
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-activemq'
 
-    //JWT
-    implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: jjwtVersion
-    implementation group: 'io.jsonwebtoken', name: 'jjwt-impl', version: jjwtVersion
-    implementation group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: jjwtVersion
+    //MongoDB
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-mongodb'
 
     //AOP
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'

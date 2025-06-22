@@ -1,5 +1,5 @@
 services:
-  # --------------------------- DATABASE ---------------------------
+  # --------------------------- DATABASE-SQL ---------------------------
   postgres:
     image: postgres:16-alpine
     container_name: postgres
@@ -14,6 +14,24 @@ services:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  # --------------------------- DATABASE-NoSQL ---------------------------
+  mongodb:
+    image: mongo:8.0
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: trainer_session
+      MONGO_INITDB_ROOT_PASSWORD: s3cr3tp455w0rd
+      MONGO_INITDB_ROOT_DATABASE: trainer_session_db
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -86,11 +104,12 @@ services:
     ports:
       - "8766:8766"
     depends_on:
-      postgres:
-        condition: service_healthy
       gym-crm-service-discovery:
         condition: service_healthy
+      mongodb:
+        condition: service_healthy
     environment:
+      SPRING_DATA_MONGODB_URI: mongodb://trainer_session:s3cr3tp455w0rd@mongodb:27017/trainer_session_db?authSource=admin
       EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://gym-crm-service-discovery:8765/eureka
       EUREKA_INSTANCE_HOSTNAME: trainer-session-management
       EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
@@ -98,3 +117,4 @@ services:
 volumes:
   postgres-data:
   activemq-data:
+  mongo-data:
