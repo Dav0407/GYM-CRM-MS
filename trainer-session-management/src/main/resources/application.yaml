@@ -11,6 +11,7 @@ spring:
       username: trainer_session
       password: s3cr3tp455w0rd
       database: trainer_session_db
+      auto-index-creation: true
 
 server:
   port: 8766

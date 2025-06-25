@@ -6,9 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
@@ -21,17 +21,18 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@CompoundIndexes({
+        @CompoundIndex(name = "first_last_name_idx", def = "{'trainerFirstName' : 1, 'trainerLastName': 1}")
+})
 @Document(collection = "trainer_working_hours")
 public class TrainerWorkingHours {
 
     @Id
     private String trainerUsername;
 
-    @Indexed
     @Field(targetType = FieldType.STRING)
     private String trainerFirstName;
 
-    @Indexed
     @Field(targetType = FieldType.STRING)
     private String trainerLastName;
 
