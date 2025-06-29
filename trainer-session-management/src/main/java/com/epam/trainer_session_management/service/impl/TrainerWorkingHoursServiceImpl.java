@@ -7,6 +7,7 @@ import com.epam.trainer_session_management.enums.ActionType;
 import com.epam.trainer_session_management.repository.TrainerWorkingHoursRepository;
 import com.epam.trainer_session_management.service.TrainerWorkingHoursService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursService {
@@ -54,7 +56,8 @@ public class TrainerWorkingHoursServiceImpl implements TrainerWorkingHoursServic
             updated = updateTrainerRecord(existing, year, month, day, durationHours);
         }
 
-        repository.save(updated); // persist changes
+        TrainerWorkingHours trainerWorkingHours = repository.save(updated);// persist changes
+        log.info("Trainer working hours saved or updated: {}", trainerWorkingHours);
     }
 
     @Override
