@@ -101,7 +101,7 @@ public class TraineeSteps {
                 .firstName(firstName)
                 .lastName(lastName)
                 .dateOfBirth(new Date())
-                .address("Some Address")
+                .address("Address of " + username)
                 .build();
         traineeService.createTraineeProfile(dto);
     }
@@ -181,7 +181,7 @@ public class TraineeSteps {
                 .firstName("Test")
                 .lastName("User")
                 .dateOfBirth(new Date())
-                .address("Test Address")
+                .address("Test Address of " + username)
                 .build();
         traineeService.createTraineeProfile(dto);
     }
@@ -207,7 +207,7 @@ public class TraineeSteps {
                 .firstName("Status")
                 .lastName("Trainee")
                 .dateOfBirth(new Date())
-                .address("Some Address")
+                .address("The Address of " + username)
                 .build();
         TraineeResponseDTO trainee = traineeService.createTraineeProfile(dto);
         if (trainee.getIsActive() != Boolean.parseBoolean(isActive)) {
