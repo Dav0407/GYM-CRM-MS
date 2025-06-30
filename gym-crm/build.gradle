@@ -29,6 +29,7 @@ ext{
     mapstructVersion = '1.5.5.Final'
     springDocVersion = '2.8.6'
     jjwtVersion = '0.12.6'
+    cucumberVersion = '7.15.0'
 }
 
 dependencies {
@@ -68,6 +69,9 @@ dependencies {
     runtimeOnly group: 'org.postgresql', name: 'postgresql'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
 
+    //H2
+    runtimeOnly group: 'com.h2database', name: 'h2'
+
     //Health monitor
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
 
@@ -77,10 +81,20 @@ dependencies {
     //Prometheus
     runtimeOnly group: 'io.micrometer', name: 'micrometer-registry-prometheus'
 
+    //Cucumber
+    testImplementation group: 'io.cucumber', name: 'cucumber-java', version: cucumberVersion
+    testImplementation group: 'io.cucumber', name: 'cucumber-spring', version: cucumberVersion
+    testImplementation group: 'io.cucumber', name: 'cucumber-junit-platform-engine', version: cucumberVersion
+
     //Test
     testImplementation group: 'org.springframework.security', name: 'spring-security-test'
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+
     testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
+    testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.0' // Latest stable version
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.0'
+    testImplementation 'org.junit.platform:junit-platform-suite:1.11.0'
 }
 
 
@@ -90,8 +104,9 @@ dependencyManagement {
     }
 }
 
+// Correct configuration for the 'test' task
 tasks.named('test') {
+    maxParallelForks = 1
+    forkEvery = 1
     useJUnitPlatform()
 }
-
-void useJUnitPlatform() {}

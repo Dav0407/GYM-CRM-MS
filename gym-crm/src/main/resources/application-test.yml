@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: davron
+    password: root
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true # For better readability
+        # These are crucial for debugging DDL issues
+        # For Hibernate 6+ (your version) logging configuration:
+        jakarta.persistence.schema-generation.scripts.action: create
+        jakarta.persistence.schema-generation.scripts.create-target: ./build/generated-sql/create.sql # Output DDL to a file for inspection
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.tool.schema: DEBUG
