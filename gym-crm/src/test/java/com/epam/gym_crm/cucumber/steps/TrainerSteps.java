@@ -168,8 +168,8 @@ public class TrainerSteps {
         testContext.addUserData(username, password, user); // Store password for later auth if needed
     }
 
-    @Given("a trainer exists with username {string} and password {string} and specialization {string} and active status {boolean}")
-    public void aTrainerExistsWithUsernameAndPasswordAndSpecializationAndActiveStatus(String username, String password, String specializationName, boolean isActive) {
+    @Given("a trainer exists with username {string} and password {string} and specialization {string} and active status {string}")
+    public void aTrainerExistsWithUsernameAndPasswordAndSpecializationAndActiveStatus(String username, String password, String specializationName, String isActive) {
         TrainingType trainingType = trainingTypeRepository.findByTrainingTypeNameIgnoreCase(specializationName)
                 .orElseGet(() -> trainingTypeRepository.save(TrainingType.builder().trainingTypeName(specializationName).build()));
 
@@ -178,7 +178,7 @@ public class TrainerSteps {
                 .lastName(username.split("\\.")[1])
                 .username(username)
                 .password(passwordEncoder.encode(password)) // Encode the password
-                .isActive(isActive)
+                .isActive(Boolean.parseBoolean(isActive))
                 .role(User.Role.TRAINER)
                 .build();
         userRepository.save(user);

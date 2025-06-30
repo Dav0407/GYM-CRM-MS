@@ -62,7 +62,7 @@ Feature: Trainer Management
 
   Scenario: Switch trainer status (activate/deactivate)
     Given the application is running
-    And a trainer exists with username "inactive.trainer" and password "pass123" and specialization "CrossFit" and active status false
+    And a trainer exists with username "inactive.trainer" and password "pass123" and specialization "CrossFit" and active status "false"
     And the current user is authenticated as "inactive.trainer" with password "pass123"
     When a PATCH request is sent to "/api/v1/trainers/inactive.trainer/status"
     Then the response status code should be 200
