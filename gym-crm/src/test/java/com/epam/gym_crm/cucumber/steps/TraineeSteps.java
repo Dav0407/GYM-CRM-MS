@@ -10,18 +10,15 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
 public class TraineeSteps {
 
     @LocalServerPort
@@ -46,19 +42,17 @@ public class TraineeSteps {
     private ResponseEntity<String> latestResponse;
     private CreateTraineeProfileRequestDTO createRequest;
     private UpdateTraineeProfileRequestDTO updateRequest;
-    private String currentUsername;
+    private static String currentAccessToken;
 
 
     private String getBaseUrl() {
         return "http://localhost:" + port + "/api/v1/trainees";
     }
 
+    // Scenario 1: Register a new trainee
     @Given("a new trainee registration request with first name {string}, last name {string}, birth date {string}, and address {string}")
-    public void aNewTraineeRegistrationRequestWithFirstNameLastNameBirthDateAndAddress(
-            String firstName, String lastName, String birthDateString, String address) throws Exception {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        Date birthDate = formatter.parse(birthDateString);
-
+    public void aNewTraineeRegistrationRequest(String firstName, String lastName, String birthDateString, String address) throws Exception {
+        Date birthDate = new SimpleDateFormat("yyyy-MM-dd").parse(birthDateString);
         createRequest = CreateTraineeProfileRequestDTO.builder()
                 .firstName(firstName)
                 .lastName(lastName)
@@ -82,86 +76,67 @@ public class TraineeSteps {
 
     @And("the response should contain a username and password")
     public void theResponseShouldContainAUsernameAndPassword() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        TraineeResponseDTO responseDTO = mapper.readValue(latestResponse.getBody(), TraineeResponseDTO.class);
+        TraineeResponseDTO responseDTO = new ObjectMapper().readValue(latestResponse.getBody(), TraineeResponseDTO.class);
         assertNotNull(responseDTO.getUsername());
         assertNotNull(responseDTO.getPassword());
-        currentUsername = responseDTO.getUsername(); // Store for subsequent calls
     }
 
     @And("the first name in the response should be {string}")
     public void theFirstNameInTheResponseShouldBe(String expectedFirstName) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        TraineeResponseDTO responseDTO = mapper.readValue(latestResponse.getBody(), TraineeResponseDTO.class);
+        TraineeResponseDTO responseDTO = new ObjectMapper().readValue(latestResponse.getBody(), TraineeResponseDTO.class);
         assertEquals(expectedFirstName, responseDTO.getFirstName());
     }
 
     @And("the last name in the response should be {string}")
     public void theLastNameInTheResponseShouldBe(String expectedLastName) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        TraineeResponseDTO responseDTO = mapper.readValue(latestResponse.getBody(), TraineeResponseDTO.class);
+        TraineeResponseDTO responseDTO = new ObjectMapper().readValue(latestResponse.getBody(), TraineeResponseDTO.class);
         assertEquals(expectedLastName, responseDTO.getLastName());
+        currentAccessToken = responseDTO.getAccessToken();
     }
 
+    // Scenario 2: Get trainee profile
     @Given("a trainee {string} exists with first name {string}, last name {string}")
-    public void aTraineeExistsWithFirstNameLastName(String username, String firstName, String lastName) {
-        // Here you would typically use your service layer to create a trainee for the test
-        // This simulates a pre-existing trainee in the database
-        CreateTraineeProfileRequestDTO createDto = CreateTraineeProfileRequestDTO.builder()
+    public void aTraineeExistsWithName(String username, String firstName, String lastName) {
+        CreateTraineeProfileRequestDTO dto = CreateTraineeProfileRequestDTO.builder()
                 .firstName(firstName)
                 .lastName(lastName)
-                .dateOfBirth(new Date()) // Or a specific date for consistency
+                .dateOfBirth(new Date())
                 .address("Some Address")
                 .build();
-        traineeService.createTraineeProfile(createDto); // This will generate username/password
-        // Note: The actual username generated by traineeService.createTraineeProfile might be different if it appends numbers.
-        // For accurate testing, you might need to retrieve the generated username or mock the service.
-        // For simplicity, we'll assume the service creates a username close to the given one or we retrieve it.
-        // A more robust solution would involve mocking traineeService.createTraineeProfile to return a predictable username.
-        // Or, if the service returns the created entity, we can extract the username from there.
-
-        // For this example, let's assume `checkOwnership` is bypassed or we mock it.
-        // To make this robust, in a real scenario, you'd probably register the user through the API
-        // in a @Before scenario or use your service directly, then extract the generated username
-        // and use that for subsequent calls.
-        this.currentUsername = username; // For simplicity in this example, assuming this username will work.
-        // In a real app, this needs to be the actual generated username.
+        traineeService.createTraineeProfile(dto);
     }
-
-    @Given("a trainee {string} exists")
-    public void aTraineeExists(String username) {
-        // Similar to the above, create a trainee.
-        CreateTraineeProfileRequestDTO createDto = CreateTraineeProfileRequestDTO.builder()
-                .firstName("Test")
-                .lastName("User")
-                .dateOfBirth(new Date())
-                .address("Test Address")
-                .build();
-        traineeService.createTraineeProfile(createDto);
-        this.currentUsername = username;
-    }
-
 
     @When("I send a GET request to {string}")
     public void iSendAGETRequestTo(String endpoint) {
-        String url = getBaseUrl() + endpoint.replace("{username}", currentUsername);
-        latestResponse = restTemplate.getForEntity(url, String.class);
+        String url = getBaseUrl() + endpoint;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(currentAccessToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        latestResponse = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
     }
 
     @And("the username in the response should be {string}")
     public void theUsernameInTheResponseShouldBe(String expectedUsername) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        TraineeProfileResponseDTO responseDTO = mapper.readValue(latestResponse.getBody(), TraineeProfileResponseDTO.class);
+        TraineeProfileResponseDTO responseDTO = new ObjectMapper().readValue(latestResponse.getBody(), TraineeProfileResponseDTO.class);
         assertEquals(expectedUsername, responseDTO.getUsername());
     }
 
+    @And("the first name in the get response should be {string}")
+    public void theFirstNameInTheGetResponseShouldBe(String expectedFirstName) throws Exception {
+        TraineeProfileResponseDTO responseDTO = new ObjectMapper().readValue(latestResponse.getBody(), TraineeProfileResponseDTO.class);
+        assertEquals(expectedFirstName, responseDTO.getFirstName());
+    }
 
+    @And("the last name in the get response should be {string}")
+    public void theLastNameInTheGetResponseShouldBe(String expectedLastName) throws Exception {
+        TraineeProfileResponseDTO responseDTO = new ObjectMapper().readValue(latestResponse.getBody(), TraineeProfileResponseDTO.class);
+        assertEquals(expectedLastName, responseDTO.getLastName());
+    }
+
+    // Scenario 3: Update trainee
     @Given("an update trainee request for username {string} with first name {string}, last name {string}, birth date {string}, address {string}, and active status {string}")
-    public void anUpdateTraineeRequestForUsernameWithFirstNameLastNameBirthDateAddressAndActiveStatus(
-            String username, String firstName, String lastName, String birthDateString, String address, String isActive) throws Exception {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        Date birthDate = formatter.parse(birthDateString);
-
+    public void anUpdateRequest(String username, String firstName, String lastName, String birthDateString, String address, String isActive) throws Exception {
+        Date birthDate = new SimpleDateFormat("yyyy-MM-dd").parse(birthDateString);
         updateRequest = UpdateTraineeProfileRequestDTO.builder()
                 .username(username)
                 .firstName(firstName)
@@ -170,28 +145,54 @@ public class TraineeSteps {
                 .address(address)
                 .isActive(Boolean.parseBoolean(isActive))
                 .build();
-        this.currentUsername = username;
     }
 
     @When("I send a PUT request to {string}")
     public void iSendAPUTRequestTo(String endpoint) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<UpdateTraineeProfileRequestDTO> requestEntity = new HttpEntity<>(updateRequest, headers);
-        latestResponse = restTemplate.exchange(getBaseUrl() + endpoint, HttpMethod.PUT, requestEntity, String.class);
+        headers.setBearerAuth(currentAccessToken);
+        HttpEntity<UpdateTraineeProfileRequestDTO> entity = new HttpEntity<>(updateRequest, headers);
+        latestResponse = restTemplate.exchange(getBaseUrl() + endpoint, HttpMethod.PUT, entity, String.class);
+    }
+
+    @And("the first name in the update response should be {string}")
+    public void theFirstNameInTheUpdateResponseShouldBe(String expectedFirstName) throws Exception {
+        TraineeProfileResponseDTO responseDTO = new ObjectMapper().readValue(latestResponse.getBody(), TraineeProfileResponseDTO.class);
+        assertEquals(expectedFirstName, responseDTO.getFirstName());
+    }
+
+    @And("the last name in the update response should be {string}")
+    public void theLastNameInTheUpdateResponseShouldBe(String expectedLastName) throws Exception {
+        TraineeProfileResponseDTO responseDTO = new ObjectMapper().readValue(latestResponse.getBody(), TraineeProfileResponseDTO.class);
+        assertEquals(expectedLastName, responseDTO.getLastName());
     }
 
     @And("the active status in the response should be {string}")
     public void theActiveStatusInTheResponseShouldBe(String expectedIsActive) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        TraineeProfileResponseDTO responseDTO = mapper.readValue(latestResponse.getBody(), TraineeProfileResponseDTO.class);
+        TraineeProfileResponseDTO responseDTO = new ObjectMapper().readValue(latestResponse.getBody(), TraineeProfileResponseDTO.class);
         assertEquals(Boolean.parseBoolean(expectedIsActive), responseDTO.getIsActive());
+    }
+
+    // Scenario 4: Delete trainee
+    @Given("a trainee {string} exists")
+    public void aTraineeExists(String username) {
+        CreateTraineeProfileRequestDTO dto = CreateTraineeProfileRequestDTO.builder()
+                .firstName("Test")
+                .lastName("User")
+                .dateOfBirth(new Date())
+                .address("Test Address")
+                .build();
+        traineeService.createTraineeProfile(dto);
     }
 
     @When("I send a DELETE request to {string}")
     public void iSendADELETERequestTo(String endpoint) {
-        String url = getBaseUrl() + endpoint.replace("{username}", currentUsername);
-        latestResponse = restTemplate.exchange(url, HttpMethod.DELETE, null, String.class);
+        String url = getBaseUrl() + endpoint;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(currentAccessToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        latestResponse = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
     }
 
     @And("the response body should be empty")
@@ -199,30 +200,28 @@ public class TraineeSteps {
         assertNull(latestResponse.getBody());
     }
 
+    // Scenario 5: Switch trainee status
     @Given("a trainee {string} exists with active status {string}")
-    public void aTraineeExistsWithActiveStatus(String username, String isActive) {
-        // Create a trainee with a specific active status
-        CreateTraineeProfileRequestDTO createDto = CreateTraineeProfileRequestDTO.builder()
+    public void aTraineeExistsWithStatus(String username, String isActive) {
+        CreateTraineeProfileRequestDTO dto = CreateTraineeProfileRequestDTO.builder()
                 .firstName("Status")
                 .lastName("Trainee")
                 .dateOfBirth(new Date())
                 .address("Some Address")
                 .build();
-        TraineeResponseDTO createdTrainee = traineeService.createTraineeProfile(createDto);
-        // Assuming your service allows setting status on creation or provides an update method.
-        // For this example, we'll assume `updateStatus` is idempotent or we set it directly.
-        if (createdTrainee.getIsActive() != Boolean.parseBoolean(isActive)) {
-            traineeService.updateStatus(createdTrainee.getUsername()); // Toggle if needed
+        TraineeResponseDTO trainee = traineeService.createTraineeProfile(dto);
+        if (trainee.getIsActive() != Boolean.parseBoolean(isActive)) {
+            traineeService.updateStatus(trainee.getUsername());
         }
-        this.currentUsername = username;
     }
 
     @When("I send a PATCH request to {string}")
     public void iSendAPATCHRequestTo(String endpoint) {
-        String url = getBaseUrl() + endpoint.replace("{trainee-username}", currentUsername);
+        String url = getBaseUrl() + endpoint;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-        latestResponse = restTemplate.exchange(url, HttpMethod.PATCH, requestEntity, String.class);
+        headers.setBearerAuth(currentAccessToken);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        latestResponse = restTemplate.exchange(url, HttpMethod.PATCH, entity, String.class);
     }
 }

@@ -6,7 +6,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 @CucumberContextConfiguration
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@ActiveProfiles("dev")
 public class SpringIntegrationTest {
-    // This class is intentionally empty. It serves as a Spring Boot test context.
 }
