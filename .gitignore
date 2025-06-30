@@ -8,3 +8,6 @@
 /.idea/vcs.xml
 /.idea/modules/gymcrm.main.iml
 /.idea/codeStyles/codeStyleConfig.xml
+/gym-crm/target/cucumber-reports/cucumber.json
+/gym-crm/target/cucumber-reports/cucumber-html-report.html
+/.idea/modules/gymcrm.test.iml
