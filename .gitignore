@@ -11,3 +11,4 @@
 /gym-crm/target/cucumber-reports/cucumber.json
 /gym-crm/target/cucumber-reports/cucumber-html-report.html
 /.idea/modules/gymcrm.test.iml
+/.idea/dataSources.xml
