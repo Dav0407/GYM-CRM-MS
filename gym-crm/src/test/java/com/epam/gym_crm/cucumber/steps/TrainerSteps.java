@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TrainerSteps {
@@ -67,10 +68,6 @@ public class TrainerSteps {
 
     private String getTrainerBaseUrl() {
         return "http://localhost:" + port + "/api/v1/trainers";
-    }
-
-    private String getTraineeBaseUrl() {
-        return "http://localhost:" + port + "/api/v1/trainees";
     }
 
     //Scenario 1
@@ -131,7 +128,7 @@ public class TrainerSteps {
 
     //Scenario 2
     @Given("a trainer exists with a username {string} first name {string} and last name {string}")
-    public void aTrainerExistsWithAUsername(String trainerUsername, String firstName, String lastName) throws JsonProcessingException {
+    public void aTrainerExistsWithAUsername(String trainerUsername, String firstName, String lastName) {
         try {
             trainerService.getTrainerByUsername(trainerUsername);
         } catch (UserNotFoundException exception) {
@@ -190,7 +187,7 @@ public class TrainerSteps {
 
     //Scenario 3
     @And("an update trainer request for username {string} with  with first name {string}, last name {string}, specialization {string} and active status {string}")
-    public void updateTrainerRequest(String username, String firstName, String lastName, String specialization, String activeStatus) throws JsonProcessingException {
+    public void updateTrainerRequest(String username, String firstName, String lastName, String specialization, String activeStatus) {
         updateTrainerRequest = UpdateTrainerProfileRequestDTO.builder()
                 .username(username)
                 .firstName(firstName)
@@ -254,7 +251,7 @@ public class TrainerSteps {
 
     //Scenario 5
     @And("a list of trainers with usernames {string}, {string}, {string} to be assigned to our trainee {string}")
-    public void assignListOfTrainersToATrainee(String trainerUsername1, String trainerUsername2, String trainerUsername3, String traineeUsername) throws JsonProcessingException {
+    public void assignListOfTrainersToATrainee(String trainerUsername1, String trainerUsername2, String trainerUsername3, String traineeUsername) {
 
         updateTrainerListRequest = UpdateTrainerListRequestDTO.builder()
                 .traineeUsername(traineeUsername)
@@ -290,9 +287,10 @@ public class TrainerSteps {
 
     //Scenario 6
     @Given("a trainer with username {string} exists with active status {string}")
-    public void aTrainerWithActiveStatusExists(String username, String status) throws JsonProcessingException {
+    public void aTrainerWithActiveStatusExists(String username, String status) {
         try {
-            trainerService.getTrainerByUsername(username);
+            TrainerProfileResponseDTO trainerByUsername = trainerService.getTrainerByUsername(username);
+            if (trainerByUsername.getIsActive() != Boolean.parseBoolean(status)) fail();
         } catch (UserNotFoundException exception) {
             CreateTrainerProfileRequestDTO dto = CreateTrainerProfileRequestDTO.builder()
                     .firstName("Dilyor")
