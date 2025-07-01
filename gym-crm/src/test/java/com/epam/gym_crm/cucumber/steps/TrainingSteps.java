@@ -1,16 +1,11 @@
 package com.epam.gym_crm.cucumber.steps;
 
 import com.epam.gym_crm.dto.request.AddTrainingRequestDTO;
-import com.epam.gym_crm.dto.request.CreateTraineeProfileRequestDTO;
 import com.epam.gym_crm.dto.request.LogInRequestDTO;
-import com.epam.gym_crm.dto.response.TraineeResponseDTO;
 import com.epam.gym_crm.dto.response.TraineeTrainingResponseDTO;
 import com.epam.gym_crm.dto.response.TrainerTrainingResponseDTO;
 import com.epam.gym_crm.dto.response.TrainingResponseDTO;
 import com.epam.gym_crm.dto.response.TrainingTypeResponseDTO;
-import com.epam.gym_crm.exception.UserNotFoundException;
-import com.epam.gym_crm.service.TraineeService;
-import com.epam.gym_crm.service.TrainerService;
 import com.epam.gym_crm.service.TrainingService;
 import com.epam.gym_crm.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -64,8 +59,6 @@ public class TrainingSteps {
     private static Long trainingId;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    @Autowired
-    private TrainingService trainingService;
 
     private String getTrainingBaseUrl() {
         return "http://localhost:" + port + "/api/v1/trainings";

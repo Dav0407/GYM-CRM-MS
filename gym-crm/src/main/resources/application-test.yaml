@@ -1,7 +1,7 @@
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: test
   datasource:
     url: jdbc:postgresql://localhost:5432/gym_app
     username: postgres
@@ -22,5 +22,11 @@ spring:
         hbm2ddl:
           auto: create  # Update schema for development
         show_sql: false
+  activemq:
+    broker-url: tcp://localhost:61616
 server:
   port: 8080
+
+eureka:
+  client:
+    enabled: false
