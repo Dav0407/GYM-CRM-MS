@@ -1,4 +1,4 @@
-package com.epam.gym_crm.cucumber.steps;
+package com.epam.gym_crm.cucumber.integration.steps;
 
 import com.epam.gym_crm.dto.request.AddTrainingRequestDTO;
 import com.epam.gym_crm.dto.request.LogInRequestDTO;
@@ -6,7 +6,6 @@ import com.epam.gym_crm.dto.response.TraineeTrainingResponseDTO;
 import com.epam.gym_crm.dto.response.TrainerTrainingResponseDTO;
 import com.epam.gym_crm.dto.response.TrainingResponseDTO;
 import com.epam.gym_crm.dto.response.TrainingTypeResponseDTO;
-import com.epam.gym_crm.service.TrainingService;
 import com.epam.gym_crm.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

@@ -1,4 +1,4 @@
-package com.epam.gym_crm.cucumber.steps;
+package com.epam.gym_crm.cucumber.integration.steps;
 
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;

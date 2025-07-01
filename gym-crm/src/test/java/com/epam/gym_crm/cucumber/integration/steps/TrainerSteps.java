@@ -1,4 +1,4 @@
-package com.epam.gym_crm.cucumber.steps;
+package com.epam.gym_crm.cucumber.integration.steps;
 
 import com.epam.gym_crm.dto.request.CreateTraineeProfileRequestDTO;
 import com.epam.gym_crm.dto.request.CreateTrainerProfileRequestDTO;
