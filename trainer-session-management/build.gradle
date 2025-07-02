@@ -27,6 +27,7 @@ repositories {
 ext {
     set('springCloudVersion', "2025.0.0-RC1")
     jjwtVersion = '0.12.6'
+    cucumberVersion = '7.15.0'
 }
 
 dependencies {
@@ -56,6 +57,14 @@ dependencies {
     //Test
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
     testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
+
+    // Cucumber dependencies
+    testImplementation "io.cucumber:cucumber-java:${cucumberVersion}"
+    testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
+    testImplementation "io.cucumber:cucumber-spring:${cucumberVersion}"
+
+    // JUnit Platform Suite (for Cucumber runner)
+    testImplementation 'org.junit.platform:junit-platform-suite:1.11.0'
 
 }
 
