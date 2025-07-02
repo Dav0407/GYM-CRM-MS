@@ -9,7 +9,7 @@ Feature: Trainer Working Hours Management
   Scenario: Calculate and save working hours for a new trainer
     Given a trainer workload request with:
       | username  | firstName | lastName | isActive | trainingDate | durationMinutes | actionType |
-      | john.doe  | John      | Doe      | true     | 2025-06-15   | 120            | ADD        |
+      | john.doe  | John      | Doe      | true     | 2025-06-15   | 120            | ADD         |
     And the trainer does not exist in the system
     When I calculate and save the working hours
     Then the trainer working hours should be saved successfully
@@ -17,7 +17,7 @@ Feature: Trainer Working Hours Management
   Scenario: Calculate and save working hours for an existing trainer
     Given a trainer workload request with:
       | username  | firstName | lastName | isActive | trainingDate | durationMinutes | actionType |
-      | john.doe  | John      | Doe      | true     | 2025-06-15   | 120            | ADD        |
+      | john.doe  | John      | Doe      | true     | 2025-06-15   | 120            | ADD         |
     And the trainer exists in the system with existing hours
     When I calculate and save the working hours
     Then the existing trainer working hours should be updated
@@ -25,7 +25,7 @@ Feature: Trainer Working Hours Management
   Scenario: Delete training hours from existing trainer
     Given a trainer workload request with:
       | username  | firstName | lastName | isActive | trainingDate | durationMinutes | actionType |
-      | john.doe  | John      | Doe      | true     | 2025-06-15   | 120            | DELETE     |
+      | john.doe  | John      | Doe      | true     | 2025-06-15   | 120            | DELETE      |
     And the trainer exists in the system with existing hours
     When I calculate and save the working hours
     Then the trainer working hours should be reduced
@@ -33,7 +33,7 @@ Feature: Trainer Working Hours Management
   Scenario: Handle inactive trainer workload
     Given a trainer workload request with:
       | username  | firstName | lastName | isActive | trainingDate | durationMinutes | actionType |
-      | john.doe  | John      | Doe      | false    | 2025-06-15   | 120            | ADD        |
+      | john.doe  | John      | Doe      | false    | 2025-06-15   | 120            | ADD         |
     And the trainer exists in the system with existing hours
     When I calculate and save the working hours
     Then the trainer working hours should be reduced due to inactive status
@@ -41,7 +41,7 @@ Feature: Trainer Working Hours Management
   Scenario: Reject workload that exceeds daily limit for new trainer
     Given a trainer workload request with:
       | username  | firstName | lastName | isActive | trainingDate | durationMinutes | actionType |
-      | john.doe  | John      | Doe      | true     | 2025-06-15   | 540            | ADD        |
+      | john.doe  | John      | Doe      | true     | 2025-06-15   | 540            | ADD         |
     And the trainer does not exist in the system
     When I calculate and save the working hours
     Then an exception should be thrown with message containing "Daily limit is 8.0 hours"
@@ -49,7 +49,7 @@ Feature: Trainer Working Hours Management
   Scenario: Reject workload that exceeds daily limit for existing trainer
     Given a trainer workload request with:
       | username  | firstName | lastName | isActive | trainingDate | durationMinutes | actionType |
-      | john.doe  | John      | Doe      | true     | 2025-06-15   | 300            | ADD        |
+      | john.doe  | John      | Doe      | true     | 2025-06-15   | 300            | ADD         |
     And the trainer exists in the system with 4 hours already worked on that day
     When I calculate and save the working hours
     Then an exception should be thrown with message containing "would exceed daily limit"
@@ -100,7 +100,7 @@ Feature: Trainer Working Hours Management
   Scenario: Handle negative duration with delete action
     Given a trainer workload request with:
       | username  | firstName | lastName | isActive | trainingDate | durationMinutes | actionType |
-      | john.doe  | John      | Doe      | true     | 2025-06-15   | -60            | DELETE     |
+      | john.doe  | John      | Doe      | true     | 2025-06-15   | -60            | DELETE      |
     And the trainer exists in the system with existing hours
     When I calculate and save the working hours
     Then the trainer working hours should be updated successfully

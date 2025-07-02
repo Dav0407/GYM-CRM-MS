@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 @CucumberContextConfiguration
 @SpringBootTest(
         classes = {TrainerWorkingHoursServiceImpl.class},
-        properties = { // This is the correct way to exclude auto-configurations
+        properties = {
                 "spring.autoconfigure.exclude=" +
                         "org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration," +
                         "org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration"
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 )
 public class TrainerWorkingHoursSteps {
 
-    @MockitoBean // Ensure this import is: org.springframework.boot.test.mock.mockito.MockBean
+    @MockitoBean
     private TrainerWorkingHoursRepository repository;
 
     @Autowired
@@ -58,12 +58,12 @@ public class TrainerWorkingHoursSteps {
 
     @Given("the trainer working hours service is initialized")
     public void theTrainerWorkingHoursServiceIsInitialized() {
-        // Reset the mock's behavior and the test state variables for each scenario
+
         reset(repository);
         thrownException = null;
         request = null;
         response = null;
-        existingTrainer = null; // Also reset existingTrainer to avoid state leakage
+        existingTrainer = null;
     }
 
     @Given("a trainer workload request with:")
@@ -86,7 +86,6 @@ public class TrainerWorkingHoursSteps {
 
     @Given("a trainer workload request with invalid {string}: {string}")
     public void aTrainerWorkloadRequestWithInvalid(String field, String value) {
-        // Only call createBaseRequest if the 'request' itself isn't being set to null
         if (!"request".equals(field)) {
             createBaseRequest();
         }
@@ -127,7 +126,6 @@ public class TrainerWorkingHoursSteps {
                 }
                 break;
             default:
-                // Optionally throw an exception or log a warning for unhandled fields
                 System.err.println("Warning: Unhandled invalid field for TrainerWorkloadRequest: " + field);
                 break;
         }
@@ -221,7 +219,6 @@ public class TrainerWorkingHoursSteps {
                     month = getInvalidMonthValue(value);
                     break;
                 default:
-                    // Optionally throw an exception or log a warning for unhandled fields
                     System.err.println("Warning: Unhandled invalid field for getTrainerWorkingHours: " + field);
                     break;
             }
@@ -316,7 +313,6 @@ public class TrainerWorkingHoursSteps {
                 request.setTrainerUsername("a".repeat(51));
                 break;
             default:
-                // Handle unexpected value if necessary
                 break;
         }
     }
@@ -333,7 +329,6 @@ public class TrainerWorkingHoursSteps {
                 request.setTrainerFirstName("a".repeat(101));
                 break;
             default:
-                // Handle unexpected value if necessary
                 break;
         }
     }
@@ -350,56 +345,39 @@ public class TrainerWorkingHoursSteps {
                 request.setTrainerLastName("a".repeat(101));
                 break;
             default:
-                // Handle unexpected value if necessary
                 break;
         }
     }
 
     private String getInvalidValue(String value) {
-        switch (value) {
-            case "null":
-                return null;
-            case "empty":
-                return "";
-            case "short":
-                return "ab";
-            case "long":
-                return "a".repeat(51);
-            default:
-                return value; // Return original value if not a special keyword
-        }
+        return switch (value) {
+            case "null" -> null;
+            case "empty" -> "";
+            case "short" -> "ab";
+            case "long" -> "a".repeat(51);
+            default -> value;
+        };
     }
 
     private String getInvalidYearValue(String value) {
-        switch (value) {
-            case "null":
-                return null;
-            case "empty":
-                return "";
-            case "invalid":
-                return "invalid";
-            case "tooLow":
-                return "2024";
-            case "tooHigh":
-                return "2101";
-            default:
-                return value;
-        }
+        return switch (value) {
+            case "null" -> null;
+            case "empty" -> "";
+            case "invalid" -> "invalid";
+            case "tooLow" -> "2024";
+            case "tooHigh" -> "2101";
+            default -> value;
+        };
     }
 
     private String getInvalidMonthValue(String value) {
-        switch (value) {
-            case "null":
-                return null;
-            case "empty":
-                return "";
-            case "invalid":
-                return "INVALID";
-            case "invalidNum":
-                return "13";
-            default:
-                return value;
-        }
+        return switch (value) {
+            case "null" -> null;
+            case "empty" -> "";
+            case "invalid" -> "INVALID";
+            case "invalidNum" -> "13";
+            default -> value;
+        };
     }
 
     private TrainerWorkingHours createExistingTrainer() {
@@ -461,7 +439,7 @@ public class TrainerWorkingHoursSteps {
                 .build();
 
         TrainerWorkingHours.Month month = TrainerWorkingHours.Month.builder()
-                .month("6") // Numeric month
+                .month("6")
                 .monthlyWorkingHours(5.0f)
                 .days(new ArrayList<>(List.of(day)))
                 .build();
