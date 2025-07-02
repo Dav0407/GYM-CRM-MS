@@ -14,3 +14,4 @@
 /.idea/dataSources.xml
 /.idea/inspectionProfiles/Project_Default.xml
 /trainer-session-management/target/cucumber-reports
+/.idea/modules/training-session-management.test.iml
