@@ -4,6 +4,7 @@ import com.epam.trainer_session_management.document.TrainerWorkingHours;
 import com.epam.trainer_session_management.dto.TrainerWorkloadRequest;
 import com.epam.trainer_session_management.dto.TrainerWorkloadResponse;
 import com.epam.trainer_session_management.enums.ActionType;
+import com.epam.trainer_session_management.listener.TrainerHoursMessageListener;
 import com.epam.trainer_session_management.repository.TrainerWorkingHoursRepository;
 import com.epam.trainer_session_management.service.impl.TrainerWorkingHoursServiceImpl;
 import io.cucumber.datatable.DataTable;
@@ -13,6 +14,7 @@ import io.cucumber.java.en.When;
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDate;
@@ -47,6 +49,9 @@ public class TrainerWorkingHoursSteps {
 
     @MockitoBean
     private TrainerWorkingHoursRepository repository;
+
+    @MockitoBean
+    private MongoTemplate mongoTemplate;
 
     @Autowired
     private TrainerWorkingHoursServiceImpl service;

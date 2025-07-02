@@ -59,13 +59,13 @@ dependencies {
     testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
 
     // Cucumber dependencies
-    testImplementation "io.cucumber:cucumber-java:${cucumberVersion}"
-    testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
-    testImplementation "io.cucumber:cucumber-spring:${cucumberVersion}"
+    testImplementation group: 'io.cucumber', name: 'cucumber-java', version: cucumberVersion
+    testImplementation group: 'io.cucumber', name: 'cucumber-junit-platform-engine', version: cucumberVersion
+    testImplementation group: 'io.cucumber', name: 'cucumber-spring', version: cucumberVersion
 
     // JUnit Platform Suite (for Cucumber runner)
-    testImplementation 'org.junit.platform:junit-platform-suite:1.11.0'
-
+    testImplementation group: 'org.junit.platform', name: 'junit-platform-suite', version: '1.11.0'
+    testImplementation group: 'de.flapdoodle.embed', name: 'de.flapdoodle.embed.mongo', version: '4.20.1'
 }
 
 dependencyManagement {
@@ -75,7 +75,8 @@ dependencyManagement {
 }
 
 tasks.named('test') {
+    maxParallelForks = 1
+    forkEvery = 1
     useJUnitPlatform()
 }
 
-void useJUnitPlatform() {}
