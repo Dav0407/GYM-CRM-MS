@@ -1,4 +1,4 @@
-package com.epam.gym_crm.cucumber.integration.steps;
+package com.epam.gym_crm.cucumber_integration.steps;
 
 import com.epam.gym_crm.dto.request.ChangePasswordRequestDTO;
 import com.epam.gym_crm.dto.request.LogInRequestDTO;

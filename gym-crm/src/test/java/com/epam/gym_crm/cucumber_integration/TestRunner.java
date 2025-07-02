@@ -1,4 +1,4 @@
-package com.epam.gym_crm.cucumber;
+package com.epam.gym_crm.cucumber_integration;
 
 import org.junit.platform.suite.api.ConfigurationParameter;
 import org.junit.platform.suite.api.IncludeEngines;
@@ -10,6 +10,6 @@ import static io.cucumber.junit.platform.engine.Constants.GLUE_PROPERTY_NAME;
 @Suite
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features") // Points to src/test/resources/features
-@ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "com.epam.gym_crm.cucumber.integration.steps") // Points to your step definitions
+@ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "com.epam.gym_crm.cucumber_integration.steps") // Points to your step definitions
 public class TestRunner {
 }

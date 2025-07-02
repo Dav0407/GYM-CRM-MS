@@ -89,11 +89,6 @@ dependencies {
     //Test
     testImplementation group: 'org.springframework.security', name: 'spring-security-test'
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-
-    testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
-    testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.0' // Latest stable version
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.0'
     testImplementation 'org.junit.platform:junit-platform-suite:1.11.0'
 }
 
