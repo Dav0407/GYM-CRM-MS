@@ -4,7 +4,6 @@ import com.epam.trainer_session_management.document.TrainerWorkingHours;
 import com.epam.trainer_session_management.dto.TrainerWorkloadRequest;
 import com.epam.trainer_session_management.dto.TrainerWorkloadResponse;
 import com.epam.trainer_session_management.enums.ActionType;
-import com.epam.trainer_session_management.listener.TrainerHoursMessageListener;
 import com.epam.trainer_session_management.repository.TrainerWorkingHoursRepository;
 import com.epam.trainer_session_management.service.impl.TrainerWorkingHoursServiceImpl;
 import io.cucumber.datatable.DataTable;
