@@ -14,6 +14,11 @@ Feature: Trainer Management
     And the specialization in the trainer response should be "Yoga"
     And the trainer response should contain access and refresh tokens
 
+  Scenario: Register a new trainer with a training type that does not exist
+    Given a new trainer registration request with first name "Mirsaid", last name "Mirshakirov", training type "Ju-do"
+    When I send a POST request to trainer api "/register"
+    Then the trainer response status code should be 404 for trainer api
+
   Scenario: Get trainer profile successfully
     Given a trainer exists with a username "dilyor.sodiqov" first name "Dilyor" and last name "Sodiqov"
     When I send a trainer GET request to "/dilyor.sodiqov"
@@ -23,6 +28,11 @@ Feature: Trainer Management
     And the trainer last name in the get response should be "Sodiqov"
     And the trainer active status in the get response should be "true"
     And the trainer specialization in the get response should be "Yoga"
+
+  Scenario: Get trainer profile with wrong username
+    Given a trainer exists with a username "dilyor.sodiqov" first name "Dilyor" and last name "Sodiqov"
+    When I send a trainer GET request to "/sarah.miller"
+    Then the trainer response status code should be 403
 
   Scenario: Update trainer profile successfully
     Given a trainer exists with a username "dilyor.sodiqov" first name "Dilyor" and last name "Sodiqov"
@@ -35,11 +45,21 @@ Feature: Trainer Management
     And the trainer active status in the get response should be "true"
     And the trainer specialization in the get response should be "Cardio"
 
+  Scenario: Update a trainer profile by giving a training type that does not exist
+    Given a trainer exists with a username "dilyor.sodiqov" first name "Dilyor" and last name "Sodiqov"
+    And an update trainer request for username "dilyor.sodiqov" with  with first name "Debra", last name "Jessi", specialization "Ju-do" and active status "true"
+    When I send a PUT request to "" trainer api
+    Then the trainer response status code should be 404
+
   Scenario: Get unsigned trainers for a trainee "davron.normamatov"
     Given a trainee with username "davron.normamatov" exists
     When I send a trainer GET request to "/not-assigned/davron.normamatov" for fetching available trainers
     Then the trainer response status code should be 200
     And the list of trainers should contain trainer with first name "Debra", last name with "Jessi" and with username "dilyor.sodiqov"
+
+  Scenario: Get unsigned trainers for a trainee "davron.normamatov" with a wrong username
+    When I send a trainer GET request to "/not-assigned/sarah.miller" for fetching available trainers
+    Then the trainer response status code should be 403
 
   Scenario: Assign a trainers list for a trainee with username "davron.normamatov"
     Given a trainee with username "davron.normamatov" exists
@@ -50,9 +70,15 @@ Feature: Trainer Management
     And the list of trainers should contain trainer with first name "Sarah", last name with "Miller" and with username "sarah.miller"
     And the list of trainers should not contain trainer with first name "Debra", last name with "Jessi" and with username "dilyor.sodiqov"
 
-    Scenario: Switch trainer status
-      Given a trainer with username "dilyor.sodiqov" exists with active status "true"
-      When I send a PATCH request to "/dilyor.sodiqov/status" for trainer api
-      Then the trainer response status code should be 200 for trainer api
-      And the trainer username in the response should be "dilyor.sodiqov"
-      And the trainer active status in the get response should be "false"
+
+  Scenario: Switch trainer status
+    Given a trainer with username "dilyor.sodiqov" exists with active status "true"
+    When I send a PATCH request to "/dilyor.sodiqov/status" for trainer api
+    Then the trainer response status code should be 200 for trainer api
+    And the trainer username in the response should be "dilyor.sodiqov"
+    And the trainer active status in the get response should be "false"
+
+  Scenario: Switch trainer status with a wrong username
+    Given a trainer with username "dilyor.sodiqov" exists with active status "false"
+    When I send a PATCH request to "/sarah.miller/status" for trainer api
+    Then the trainer response status code should be 403 for trainer api

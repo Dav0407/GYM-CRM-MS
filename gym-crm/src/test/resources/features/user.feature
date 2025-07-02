@@ -10,11 +10,21 @@ Feature: User Authentication and Password Management
     Then the response status code should be 200 for user
     And the access and refresh tokens should be returned as a response
 
+  Scenario: Log in to a non existing user
+    Given a user with username "david.guetta" and password "password123"
+    When I will send a POST request to an api "/login"
+    Then the response status code should be 404 for user
+
   Scenario: Change password for a user successfully
     Given a user with username "sarah.miller" and old password "password123" and a new password "strong_password"
     When I will send a PUT request to an api "/change-password" to change password
     Then the response status code should be 200 for changing password
     And the user's password should be equal to "strong_password"
+
+  Scenario: Change password for a non existing user
+    Given a user with username "david.guetta" and old password "password123" and a new password "strong_password"
+    When I will send a PUT request to an api "/change-password" to change password
+    Then the response status code should be 404 for changing password
 
   Scenario: Logout from user account
     When I will send a GET request to a logout api "/logout"

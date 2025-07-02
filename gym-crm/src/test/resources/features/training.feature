@@ -12,6 +12,13 @@ Feature: Training Management
     And the training title should be "Professional Boxing classes"
     And the training duration should match 120 minutes
 
+  Scenario: Create a new training session with a date in past
+    Given I authenticate to trainee account with username "john.doe" and password "password123"
+    And I authenticate to trainer account with username "emma.brown" and password "password123"
+    And I create a training session with the title "Professional Boxing classes" and on "2024-09-01" with a duration of 120 minutes
+    When I send a POST request to "" training api
+    Then the response status code should be 400 for training api
+
   Scenario: Get all training sessions of a particular trainee
     Given I authenticate to trainee account with username "john.doe" and password "password123"
     And I authenticate to trainer account with username "emma.brown" and password "password123"
@@ -45,4 +52,3 @@ Feature: Training Management
   Scenario: Delete a training session by its ID
     When I send a DELETE request
     Then the response status code should be 200 for training api
-    
