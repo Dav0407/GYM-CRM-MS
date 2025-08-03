@@ -15,3 +15,5 @@
 /.idea/inspectionProfiles/Project_Default.xml
 /trainer-session-management/target/cucumber-reports
 /.idea/modules/training-session-management.test.iml
+/.idea/modules/gym-crm.main.iml
+/.idea/modules/trainer-session-management.main.iml
